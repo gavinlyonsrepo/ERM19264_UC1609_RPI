@@ -54,14 +54,14 @@ Installation
 2. cd ERM19264_UC1609_RPI_1.0
 3. make 
 4. sudo ./bin/test
-5. There are 7 different main.cpp in the examples folder copy the one to run into src folder
-    Hellworld is in there by default.
+5. There are 7 different main.cpp in the examples folder copy the one to run into src folder.
+    Helloworld is in there by default.
 
 Hardware
 ----------------------------
 
 9 pins , Vcc and GND, anode and cathode for the backlight LED and an SPI interface.
-The backlight control is left up to user coonect to 3.3V thru a resistor.
+The backlight control is left up to user , connect to 3.3V thru a resistor.
 If using Hardware SPI two of  pins will be tied to the SPI CLK and MOSI lines if using software SPI you should be able use any GPIO you want for all five pins.
 Datasheets are in the extras folder. 
 
@@ -71,14 +71,12 @@ There are 3 different colours in range, Parts used purchased from [ebay](https:/
 2. ERM19264FS-5 V3 LCD Display  UC1609C controller , black on white
 3. ERM19264DNS-5 V3 LCD Display  UC1609C controller white on black
 
-The library was tested on 1 and 2. 
 The UC1609 controller chip is a 3.3V device but the ERM LCD module has a "662k" 3.3V regulator at back.
 So the ERM LCD module will run at 5V as well if this is present.
 It was always run it at 3.3V during testing. 
-The Backlight should always be connected to 3.3V according to datasheets.  
 
 
-![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/wiring.jpg)
+![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/wiring.png)
 
 Features
 -------------------------
