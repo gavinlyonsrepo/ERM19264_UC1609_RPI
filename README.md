@@ -8,9 +8,6 @@ Table of contents
   * [Installation](#installation)
   * [Hardware](#hardware)
   * [Features](#features)
-  * [Files](#files)
-  * [Tested](#tested)
-  * [Ports](#ports)
   
 Overview
 --------------------
@@ -29,7 +26,6 @@ Overview
 
 * Tested on RPI 3 Model B+
 * Author: Gavin Lyons
-* History: See Changelog in extras/doc folder
 * Copyright: GNU GPL v3
 * This is a Port of my Arduino [library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
 
@@ -41,7 +37,7 @@ Output Screenshots, From left to right top to bottom.
 1. Full screen bitmap displayed
 2. Multi buffer mode screen divided into two buffers
 3. Different size and type of fonts 
-4. ASCII font 0-127 printed out (128-255 also available
+4. ASCII font 0-127 printed out (128-255 also available)
 
 ![op](https://github.com/gavinlyonsrepo/ERM19264_UC1609/blob/main/extras/image/output.jpg)
 
@@ -62,8 +58,7 @@ Hardware
 
 9 pins , Vcc and GND, anode and cathode for the backlight LED and an SPI interface.
 The backlight control is left up to user , connect to 3.3V thru a resistor.
-If using Hardware SPI two of  pins will be tied to the SPI CLK and MOSI lines if using software SPI you should be able use any GPIO you want for all five pins.
-Datasheets are in the extras folder. 
+If using Hardware SPI 3 pins will be tied to the SPI CEO, CLK and MOSI lines. if using software SPI you should be able use any GPIO you want for all five pins. Datasheets URLS are in the extras folder. 
 
 There are 3 different colours in range, Parts used purchased from [ebay](https://www.ebay.ie/itm/2-inch-White-192x64-Graphic-LCD-Display-Module-UC1609-SPI-for-Arduino/293617684779?hash=item445cfa512b:g:10MAAOSwYV9e6xsi)
  
