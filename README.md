@@ -17,7 +17,7 @@ Overview
 
 1. Dynamic install-able system level Raspberry Pi C++ library.
 2. Inverse, Scroll, rotate and contrast control.
-3. 4 ASCII font + glyph font support
+3. 4 standard ASCII font + glyph font support
 4. Graphics class included.
 5. Sleep mode.
 6. Multi-buffer mode
@@ -69,7 +69,7 @@ curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.1.tar.g
     installed to usr/lib and usr/include
     
 ```sh
-cd ERM19264_UC1609-1.1
+cd ERM19264_UC1609_RPI-1.1
 sudo make
 ```
 
@@ -138,11 +138,11 @@ In addition to those 4 fonts, The ability to use glyph-fonts is also
 available. I have packaged four fonts with the library, these are not installed
 in the system but are in the include folder of examples. 
 The example file FONTS_GLYPH shows how to use these.
-The Font structures are in the ERM19264_gfxfont.h file
+The Font structures are in the ERM19264_gfxfont.h file. 
 To use a font in your program, #include the corresponding .h
 file and pass address of GFXfont struct to setFont().
 Other fonts are available from the 
-[ Adafruit GFX arduino library](https://github.com/adafruit/Adafruit-GFX-Library/)
+[ Adafruit GFX arduino library](https://github.com/adafruit/Adafruit-GFX-Library/).
 If you copy over other fonts remove the PROGMEM keyword. Lots more detail there on
 how these fonts are created and work.
 The glyph-fonts use 3 special functions: setFontGlyph drawCharGlyph drawTextGlyph.
