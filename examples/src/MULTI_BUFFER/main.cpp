@@ -1,35 +1,28 @@
 
 // Example file name : main.cpp
 // Description:
-// Test file for ERM19264_UC1609 library, showing use of Software SPI
+// Test file for ERM19264_UC1609 library, showing use of mulitple buffers.  
+// In this case: two, divided horizontally 
+// The user can also divide vertically and create as many buffers as they want.
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
-// NOTES :
-// (1) In the <ERM19264_UC1609.h> USER BUFFER OPTION SECTION, at top of file
-// option MULTI_BUFFER must be selected and only this option. It is on by default.
-// (2) Speed test results measured frame rate 66 fps 1:49 to 10000
-// (3) This is FOR SOFTWARE SPI
-// ******************************
-// 
+// Measured frame rate 214 fps at 64 clock divider on Rpi 3
+
 
 #include <bcm2835.h>
-#include "ERM19264_UC1609.h"
 #include <time.h>
 #include <stdio.h>
+#include "ERM19264_UC1609.h"
 
-#define LCDcontrast 0x50 //Constrast 00 to FF , 0x50 is default. user adjust
+// LCD setup
+#define LCDcontrast 0x25
 #define myLCDwidth  192
 #define myLCDheight 64
-
 // GPIO
-#define RST 25 // GPIO pin number pick any you want
-#define CD 24 // GPIO pin number pick any you want
-#define DIN 5 // GPIO pin number pick any you want
-#define SCLK 6 // GPIO pin number pick any you want
-#define CS 8 // GPIO pin number pick any you want
-
-// software SPI constructor 
-ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD, CS, SCLK,DIN) ; 
+#define RES 25 // GPIO pin number pick any you want
+#define DC 24 // GPIO pin number pick any you want
+ // instantiate  an object
+ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RES, DC) ;
 
 // vars for the test
 uint16_t count  = 0;
@@ -38,7 +31,8 @@ uint64_t  previousCounter =0;
 
 // =============== Function prototype ================
 void setup(void);
-void myLoop(void);
+void myTest(void);
+void EndTest(void);
 void display_Left(MultiBuffer* , long , int );
 void display_Right(MultiBuffer* );
 static uint64_t counter( void );
@@ -50,30 +44,40 @@ int main(int argc, char **argv)
 	{
 		return -1;
 	}
-	bcm2835_delay(500);
-	printf("LCD Begin\r\n");
+
 	setup();
-	myLoop();
-	myLCD.LCDSPIoff();
-	myLCD.LCDPowerDown();
-	bcm2835_close(); // Close the library
-	printf("LCD End\r\n");
+	myTest();
+	EndTest();
+
 	return 0;
 }
-// ======================= End of main  ===================
+// =============== End of main  ===============
+
+
+// ============== Function Space ============
+
+void EndTest(void)
+{
+	myLCD.LCDPowerDown();
+	bcm2835_close(); //Close lib, deallocating allocated mem & close /dev/mem
+	printf("LCD End\r\n");
+}
 
 void setup()
 {
+	bcm2835_delay(50);
+	printf("LCD Begin\r\n");
 	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
-	myLCD.LCDFillScreen(0x01, 0);
-	bcm2835_delay(2400);
+	myLCD.LCDFillScreen(0x01);
+	bcm2835_delay(2000);
 }
 
-void myLoop() {
-	
+void myTest() {
+
+
 	myLCD.setTextColor(FOREGROUND);
 	myLCD.setTextSize(1);
-	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2]; //(128 * 8)/2 = 512 bytes
+	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2];
 
 	MultiBuffer left_side;
 	left_side.screenbitmap = (uint8_t*) &screenBuffer;
@@ -81,6 +85,7 @@ void myLoop() {
 	left_side.height = myLCDheight;
 	left_side.xoffset = 0;
 	left_side.yoffset = 0;
+
 
 	MultiBuffer right_side;
 	right_side.screenbitmap = (uint8_t*) &screenBuffer;
@@ -102,6 +107,7 @@ void myLoop() {
 	}
 
 }
+
 
 // Function to display left hand side buffer
 void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
@@ -136,7 +142,7 @@ void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" fps");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.0.0");
+	myLCD.print("V 1.1");
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
 	myLCD.LCDupdate();
 }
@@ -153,16 +159,18 @@ void display_Right(MultiBuffer* targetbuffer)
 	myLCD.fillCircle(40, 20, 10, FOREGROUND);
 	myLCD.fillTriangle(60, 30, 70, 10, 80, 30, !colour);
 	myLCD.drawRoundRect(10, 40, 60, 20, 10, FOREGROUND);
-
 	myLCD.LCDupdate();
 }
 
-//This returns nano-seconds as a 64-bit unsigned number, monotonically increasing, 
+//This returns nano-seconds as a 64-bit unsigned number, monotonically increasing,
 //probably since system boot.
-//The actual resolution looks like microseconds. returns nanoseconds
+//The actual resolution looks like microseconds. 
+// Returns nanoseconds
 static uint64_t counter( void )
 {
   struct timespec now;
   clock_gettime( CLOCK_MONOTONIC, &now );
-  return  ((uint64_t)now.tv_sec * 1000000000U) + (uint64_t)now.tv_nsec; 
+  return  ((uint64_t)now.tv_sec * 1000000000U) + (uint64_t)now.tv_nsec;
 }
+
+// ******************** EOF *********************8

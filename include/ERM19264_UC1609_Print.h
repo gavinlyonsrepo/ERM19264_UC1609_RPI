@@ -21,10 +21,6 @@
 #include <stdio.h> // for size_t
 #include <string.h>
 
-#include "Printable.h"
-
-#define PGM_P const char*
-
 #define DEC 10
 #define HEX 16
 #define OCT 8
@@ -69,7 +65,6 @@ class Print
     size_t print(long, int = DEC);
     size_t print(unsigned long, int = DEC);
     size_t print(double, int = 2);
-    size_t print(const Printable&);
 
     size_t println(const char[]);
     size_t println(char);
@@ -78,7 +73,6 @@ class Print
     size_t println(long, int = DEC);
     size_t println(unsigned long, int = DEC);
     size_t println(double, int = 2);
-    size_t println(const Printable&);
     size_t println(void);
 
 };

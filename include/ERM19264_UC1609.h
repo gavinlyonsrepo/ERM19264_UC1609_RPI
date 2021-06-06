@@ -9,14 +9,6 @@
 #ifndef ERM19264_UC1609_H
 #define ERM19264_UC1609_H
 
-//***********************************************
-// ** USER BUFFER OPTION SECTION **********
-// Pick one buffer option and ONE option ONLY
-#define MULTI_BUFFER // (1) Note default
-//#define SINGLE_BUFFER // (2)
-//#define NO_BUFFER   // (3) No graphics, text + bitmap only
-// **********************************************
-// **********************************************
 
 // ** INCLUDES **
 #include <bcm2835.h>
@@ -24,13 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-
-#ifdef NO_BUFFER
-   #include "ERM19264_graphics_font.h"
-#else
-   #include "ERM19264_graphics.h"
-#endif
-
+#include "ERM19264_graphics.h"
 
 // Display Pixel colours   definition
 // (1): white on blue,  FG = white BG = blue
@@ -88,7 +74,8 @@
 #define UC1609_HIGHFREQ_DELAY 0 // uS used in software SPI , option.
 
 // Font
-#define UC1609_ASCII_OFFSET 0x20 //0x20, ASCII character for Space
+#define UC1609_ASCII_OFFSET 0x00
+#define UC1609_ASCII_OFFSET_SP 0x20 // Starts at Space
 #define UC1609_FONTPADDING  send_data(0x00)
 #define UC1609_FONTWIDTH 5
 
@@ -105,8 +92,6 @@
 #define  UC1609_SDA_SetLow bcm2835_gpio_write(_LCD_DIN, LOW)
 
 
-#ifdef MULTI_BUFFER
-
 struct MultiBuffer
 {
   uint8_t* screenbitmap; // pointer to buffer
@@ -116,14 +101,9 @@ struct MultiBuffer
   int16_t yoffset = 0; // y offset
   int8_t data = 0;
 };
-#endif
 
 //class
-#ifdef NO_BUFFER
-class ERM19264_UC1609 {
-#else
 class ERM19264_UC1609 : public ERM19264_graphics {
-#endif
   public:
 	 // Contructor 1 Software SPI with explicit SCLK and SDIN
 	ERM19264_UC1609(int16_t lcdwidth, int16_t lcdheight , int8_t rst, int8_t cd, int8_t cs,  int8_t sclk, int8_t din);
@@ -132,33 +112,19 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 
 	~ERM19264_UC1609(){};
 
-#ifdef MULTI_BUFFER
    MultiBuffer* ActiveBuffer;
-#endif
-
-#ifdef SINGLE_BUFFER
-	uint8_t* buffer;
-	uint8_t bufferWidth = LCD_WIDTH;
-	uint8_t bufferHeight = LCD_HEIGHT;
-#endif
 
 // Functions not needed for no_buffer mode
-#ifndef NO_BUFFER
-	virtual void drawPixel(int16_t x, int16_t y, uint16_t colour) override;
-	 void LCDupdate(void);
-	 void LCDclearBuffer(void);
-	 void LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
-#else  // Functions only needed for one of  buffer mode's
-	 void  LCDNoBufferGotoXY(uint8_t column , uint8_t page);
-	 void  LCDNoBufferChar(unsigned char character);
-	 void  LCDNoBufferString(const unsigned char *characters);
-#endif
 
+	virtual void drawPixel(int16_t x, int16_t y, uint8_t colour) override;
+	void LCDupdate(void);
+	void LCDclearBuffer(void);
+	void LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
 	void LCDbegin(uint8_t VbiasPot = UC1609_DEFAULT_GN_PM );
 	void LCDinit(void);
 	void LCDEnable(uint8_t on);
-	void LCDFillScreen(uint8_t pixel, uint8_t mircodelay);
-	void LCDFillPage(uint8_t page_num, uint8_t pixels,uint8_t delay);
+	void LCDFillScreen(uint8_t pixel);
+	void LCDFillPage(uint8_t page_num, uint8_t pixels);
 	void LCDrotate(uint8_t rotatevalue);
 	void LCDinvert(uint8_t on);
 	void LCDallpixelsOn(uint8_t bits);
@@ -183,7 +149,7 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	int8_t _LCD_SCLK; // Software SPI only
 	int8_t _LCD_DIN;  // Software SPI only
 
-	uint8_t _VbiasPOT; // Contrast default 0x49 datasheet 00-FE
+	uint8_t _VbiasPOT; // Contrast default 0x49, range 00-FE
 	int16_t _LCD_WIDTH =192;
 	int16_t _LCD_HEIGHT=64;
 	int8_t _LCD_PAGE_NUM = (_LCD_HEIGHT/8);

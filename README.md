@@ -8,27 +8,32 @@ Table of contents
   * [Installation](#installation)
   * [Hardware](#hardware)
   * [Features](#features)
-  
+
 Overview
 --------------------
 * Name : ERM19264_UC1609_RPI
-* Title : Library for ERM19264-5 v3 LCD  (UC1609C controller) 
-* Description : 
+* Title : Library for ERM19264-5 v3 LCD (UC1609C controller)
+* Description :
 
-1. Raspberry pi C++ library.      
-2. Inverse, Scroll, rotate and contrast control. 
-3. Extended scale-able ASCII font.
+1. Dynamic install-able system level Raspberry Pi C++ library.
+2. Inverse, Scroll, rotate and contrast control.
+3. 4 ASCII font + glyph font support
 4. Graphics class included.
 5. Sleep mode.
-6. 3 different modes: Multi-buffer , single buffer , no buffer
+6. Multi-buffer mode
 7. Bitmaps supported.
 8. Hardware & software SPI options
+9. Dependency: bcm2835 Library
 
-* Tested on RPI 3 Model B+
 * Author: Gavin Lyons
 * Copyright: GNU GPL v3
 * This is a Port of my Arduino [library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
-
+* Developed on 
+	1. Raspberry PI 3 model b, 
+	2. C++ complier g++ (Raspbian 6.3.0-18)
+	3. Raspbian 9.13 stretch OS
+	4. bcm2835 Library 1.68 
+    
 Output
 ---------------------------------
 
@@ -36,39 +41,71 @@ Output Screenshots, From left to right top to bottom.
 
 1. Full screen bitmap displayed
 2. Multi buffer mode screen divided into two buffers
-3. Different size and type of fonts 
+3. Different size and inverted ASCII fonts.
 4. ASCII font 0-127 printed out (128-255 also available)
+5. Glyph fonts 
 
 ![op](https://github.com/gavinlyonsrepo/ERM19264_UC1609/blob/main/extras/image/output.jpg)
-
+![op](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/font.jpg)
 
 Installation
 ------------------------------
 
-0. Install the C libraries of bcm2835, see: http://www.airspayce.com/mikem/bcm2835/ 
-1. curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.0.tar.gz | tar xz
-2. cd ERM19264_UC1609_RPI_1.0
-3. make 
-4. sudo ./bin/test
-5. There are 7 different main.cpp in the examples folder copy the one to run into src folder.
-    Helloworld is in there by default.
+1. Make sure SPI bus is enabled on your raspberry PI
+
+2. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.68.)
+	* The bcm2835 library is a dependency and provides SPI bus, delays and GPIO control.
+	* Install the C libraries of bcm2835, [Installation instructions here](http://www.airspayce.com/mikem/bcm2835/)
+
+3. Download the ERM19264_UC1609_RPI library 
+	* Open a Terminal in a folder where you want to download,build & test library
+	* Run following command to download from github.
+    
+```sh
+curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.1.tar.gz | tar xz
+```
+
+4. Run "make" to run the makefile in "src" folder to install library, it will be 
+    installed to usr/lib and usr/include
+    
+```sh
+cd ERM19264_UC1609-1.1
+sudo make
+```
+
+5. Next step is to test LCD and installed library with an example.
+Wire up your LCD. Next enter the examples folder and run the makefile in THAT folder, 
+This makefile builds the examples file using the just installed library.
+and creates a test exe file in "bin". Be sure to use "sudo" as the bcm2835 requires root permissions by default [ see here for more details on that](http://www.airspayce.com/mikem/bcm2835/) 
+The default example file is "hello world",  user should see "hello world" 
+on the LCD screen by end of this step.
+
+```sh
+cd examples/
+make
+sudo bin/test
+```
+
+6. There are seven examples files to try out. 
+To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY. Comment out the rest and repeat step 5.
+
 
 Hardware
 ----------------------------
 
 9 pins , Vcc and GND, anode and cathode for the backlight LED and an SPI interface.
 The backlight control is left up to user , connect to 3.3V thru a resistor.
-If using Hardware SPI 3 pins will be tied to the SPI CEO, CLK and MOSI lines. if using software SPI you should be able use any GPIO you want for all five pins. Datasheets URLS are in the extras folder. 
+If using Hardware SPI 3 pins will be tied to the SPI CEO, CLK and MOSI lines. if using software SPI you should be able use any GPIO you want for all five pins. Datasheets URLS are in the extras folder.
 
 There are 3 different colours in range, Parts used purchased from [ebay](https://www.ebay.ie/itm/2-inch-White-192x64-Graphic-LCD-Display-Module-UC1609-SPI-for-Arduino/293617684779?hash=item445cfa512b:g:10MAAOSwYV9e6xsi)
- 
+
 1. ERM19264SBS-5 V3 LCD Display UC1609C controller ,  white on blue
 2. ERM19264FS-5 V3 LCD Display  UC1609C controller , black on white
 3. ERM19264DNS-5 V3 LCD Display  UC1609C controller white on black
 
 The UC1609 controller chip is a 3.3V device but the ERM LCD module has a "662k" 3.3V regulator at back.
 So the ERM LCD module will run at 5V as well if this is present.
-It was always run it at 3.3V during testing. 
+It was always run it at 3.3V during testing.
 
 
 ![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/wiring.png)
@@ -78,28 +115,46 @@ Features
 
 *SPI*
 
-Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows for more flexible GPIO selection. When running Software SPI it may be necessary on very high frequency MCU's to change the UC1609_HIGHFREQ_DELAY define, It is a microsecond delay by default it is at 0. 
-
-*buffers*
-
-3 buffer modes 
-
-1. MULTI_BUFFER (default)
-2. SINGLE_BUFFER 
-3. NO_BUFFER , Text only no buffer , relatively light weight.  Turns LCD into simple character LCD(216 characters) , Bitmaps can still be written directly to screen but no graphics possible.
-
-To switch between modes, user must make a change to the USER BUFFER OPTION SECTION  at top of 
-ERM19264_UC1609.h file.  Pick ONE option and one option ONLY. The example files at top, say which option to pick. If wrong option is picked, example files will not work or maybe even compile.
+Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows for more flexible GPIO selection. When running Software SPI it may be necessary on very high frequency MCU's to change the UC1609_HIGHFREQ_DELAY define, It is a microsecond delay by default it is at 0.
 
 *fonts*
 
-The scalable ASCII (extended 0-255) font is a standard 5 by 7 ASCII font with two  columns  of padding added. So 7 by 8 in effect. In standard text size and "no buffer" mode, this means: 192/7 * 64/8 = 27 * 8 = 216 characters. 
+There are four standard scale-able ASCII fonts.
+A print class is available to print out most passed data types.
+The fonts 1-4 are byte high(at text size 1) scale-able fonts, columns of padding added by SW.
+The example file TEXT_GRAPHICS shows how to use these. 
+
+Four standard fonts available : 
+
+| Font num | Font name | Font size xbyy |  Note |
+| ------ | ------ | ------ | ------ |  
+| 1 | Default | 5x8 | Full Extended ASCII 0 - 0xFF |
+| 2 | Thick   | 7x8 | no lowercase letters , ASCII  0x20 - 0x5A |
+| 3 | Seven segment | 4x8 | ASCII  0x20 - 0x7A |
+| 4 | Wide | 8x8 | no lowercase letters, ASCII 0x20 - 0x5A |
+
+
+In addition to those 4 fonts, The ability to use glyph-fonts is also
+available. I have packaged four fonts with the library, these are not installed
+in the system but are in the include folder of examples. 
+The example file FONTS_GLYPH shows how to use these.
+The Font structures are in the ERM19264_gfxfont.h file
+To use a font in your program, #include the corresponding .h
+file and pass address of GFXfont struct to setFont().
+Other fonts are available from the 
+[ Adafruit GFX arduino library](https://github.com/adafruit/Adafruit-GFX-Library/)
+If you copy over other fonts remove the PROGMEM keyword. Lots more detail there on
+how these fonts are created and work.
+The glyph-fonts use 3 special functions: setFontGlyph drawCharGlyph drawTextGlyph.
+They cannot currently use the print class, also cannot be inverted.
+Inverting only works with the standard fonts because the characters are a uniform size. It's not a sensible thing to do with proportionally-spaced fonts with glyphs of varying sizes and that may overlap.  
+
 
 *bitmaps*
 
 Bitmaps are written directly to screen unless Bitmap set to a buffer.
 Best to use multi-buffer to share screen between bitmaps and text + graphics.
-Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) use vertical addressing draw mode. 
+Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) use vertical addressing draw mode.
 
 *User adjustments*
 

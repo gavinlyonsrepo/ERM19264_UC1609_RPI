@@ -11,21 +11,17 @@
 //
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
-// NOTES :
-// (1) In the <ERM19264_UC1609.h> USER BUFFER OPTION SECTION at top of file
-// , option MULTI_BUFFER must be selected
-// and only this option. It is on by default.
-// ******************************
+
 
 #include <bcm2835.h>
-#include "ERM19264_UC1609.h"
 #include <time.h>
 #include <stdio.h>
+#include "ERM19264_UC1609.h"
 
-#define LCDcontrast 0x50 //Contrast 00 to FF , 0x49 is default. user adjust
+// LCD setup
+#define LCDcontrast 0x50 //Contrast 00 to FF , 0x49 is default. 
 #define mylcdwidth  192
 #define mylcdheight 64
-
 // GPIO 
 #define RST 25 // GPIO pin number pick any you want
 #define CD 24 // GPIO pin number pick any you want 
@@ -34,23 +30,18 @@ ERM19264_UC1609 mylcd(mylcdwidth ,mylcdheight , RST, CD ) ;
 
 // =============== Function prototype ================
 void setup(void);
-void myLoop(void);
+void myTest(void);
+void EndTest(void);
 
 // ======================= Main ===================
 int main(int argc, char **argv) 
 {
-	if(!bcm2835_init())
-	{
-		return -1;
-	}
-	bcm2835_delay(500);
-	printf("LCD Begin\r\n");
+	if(!bcm2835_init()){return -1;}
+
 	setup();
-	myLoop();
-	mylcd.LCDSPIoff();
-	mylcd.LCDPowerDown();
-	bcm2835_close(); // Close lib, deallocate allocated mem & close /dev/mem
-	printf("LCD End\r\n");
+	myTest();
+	EndTest();
+
 	return 0;
 }
 // ======================= End of main  ===================
@@ -58,12 +49,21 @@ int main(int argc, char **argv)
 
 void setup()
 {
+	bcm2835_delay(50);
+	printf("LCD Begin\r\n");
 	mylcd.LCDbegin(LCDcontrast);  // initialize the LCD
-	mylcd.LCDFillScreen(0x11, 0); // Clears screen
+	mylcd.LCDFillScreen(0x11); // Clears screen
 	bcm2835_delay(1500);
 }
 
-void myLoop()
+void EndTest()
+{
+	mylcd.LCDPowerDown();
+	bcm2835_close(); // Close lib, deallocate allocated mem & close /dev/mem
+	printf("LCD End\r\n");
+}
+
+void myTest()
 {
 	// Define a full screen buffer and struct
 	uint8_t  screenBuffer[mylcdwidth * (mylcdheight/8)];

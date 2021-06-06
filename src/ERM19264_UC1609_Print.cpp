@@ -24,10 +24,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "Print.h"
+#include "ERM19264_UC1609_Print.h"
 
-// Public Methods //////////////////////////////////////////////////////////////
-
+// Public Methods ///////////////
 /* default implementation: may be overridden */
 size_t Print::write(const uint8_t *buffer, size_t size)
 {
@@ -88,11 +87,6 @@ size_t Print::print(double n, int digits)
 }
 
 
-size_t Print::print(const Printable& x)
-{
-  return x.printTo(*this);
-}
-
 size_t Print::println(void)
 {
   return write("\r\n");
@@ -112,7 +106,6 @@ size_t Print::println(char c)
   n += println();
   return n;
 }
-
 
 size_t Print::println(int num, int base)
 {
@@ -149,14 +142,7 @@ size_t Print::println(double num, int digits)
   return n;
 }
 
-size_t Print::println(const Printable& x)
-{
-  size_t n = print(x);
-  n += println();
-  return n;
-}
-
-// Private Methods /////////////////////////////////////////////////////////////
+// Private Methods ////////
 
 size_t Print::printNumber(unsigned long n, uint8_t base)
 {
