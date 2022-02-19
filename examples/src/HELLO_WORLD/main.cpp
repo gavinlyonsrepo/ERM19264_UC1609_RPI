@@ -63,13 +63,8 @@ void myTest() {
 
 	// Declare a buffer struct
 	MultiBuffer mybuffer;
-
-	// Intialise struct 
-	mybuffer.screenbitmap = (uint8_t*) &screenBuffer; // point it to the buffer
-	mybuffer.width = myLCDwidth ;
-	mybuffer.height = myLCDheight;
-	mybuffer.xoffset = 0;
-	mybuffer.yoffset = 0;
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	myLCD.LCDinitBufferStruct(&mybuffer, screenBuffer, myLCDwidth, myLCDheight, 0, 0);
 
 	// Assign address of struct to be the active buffer pointer 
 	myLCD.ActiveBuffer = &mybuffer;

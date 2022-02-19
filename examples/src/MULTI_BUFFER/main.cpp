@@ -80,20 +80,13 @@ void myTest() {
 	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2];
 
 	MultiBuffer left_side;
-	left_side.screenbitmap = (uint8_t*) &screenBuffer;
-	left_side.width = (myLCDwidth / 2) ;
-	left_side.height = myLCDheight;
-	left_side.xoffset = 0;
-	left_side.yoffset = 0;
-
-
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	myLCD.LCDinitBufferStruct(&left_side, screenBuffer, myLCDwidth/2, myLCDheight, 0, 0);
+	
 	MultiBuffer right_side;
-	right_side.screenbitmap = (uint8_t*) &screenBuffer;
-	right_side.width = (myLCDwidth / 2);
-	right_side.height = myLCDheight;
-	right_side.xoffset = (myLCDwidth / 2);
-	right_side.yoffset = 0;
-
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	myLCD.LCDinitBufferStruct(&right_side, screenBuffer, myLCDwidth/2, myLCDheight, myLCDwidth/2, 0);
+	
 	while (count < 10000)
 	{
 		static long framerate = 0;
@@ -142,7 +135,7 @@ void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" fps");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.1");
+	myLCD.print("V 1.4");
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
 	myLCD.LCDupdate();
 }

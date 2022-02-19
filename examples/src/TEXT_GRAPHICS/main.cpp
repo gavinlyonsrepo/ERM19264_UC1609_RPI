@@ -71,11 +71,8 @@ void myTest()
 	// Define a full screen buffer
 	uint8_t  textBuffer[(myLCDwidth * (myLCDheight / 8)) + 1];
 	MultiBuffer window;
-	window.screenbitmap = (uint8_t*) &textBuffer;
-	window.width = myLCDwidth;
-	window.height = myLCDheight;
-	window.xoffset = 0;
-	window.yoffset = 0;
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	myLCD.LCDinitBufferStruct(&window, textBuffer, myLCDwidth, myLCDheight, 0, 0);
 	
 	// Call a function to display text
 	DisplayText(&window);
@@ -168,7 +165,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.LCDclearBuffer();
 	
 	// Test 7
-	myLCD.setFontNum(2);
+	myLCD.setFontNum(UC1609Font_Thick);
 	myLCD.setTextSize(1);
 	myLCD.setCursor(0, 0);
 	myLCD.print("THE THICK FONT");
@@ -183,7 +180,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.LCDclearBuffer();
 	
 	// Test 8
-	myLCD.setFontNum(3);
+	myLCD.setFontNum(UC1609Font_Seven_Seg);
 	myLCD.setTextSize(1);
 	myLCD.setCursor(0, 0);
 	myLCD.print("SEVEN SEG Font");
@@ -197,7 +194,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.LCDclearBuffer();
 	
 	// Test 9
-	myLCD.setFontNum(4);
+	myLCD.setFontNum(UC1609Font_Wide);
 	myLCD.setTextSize(1);
 	myLCD.setCursor(0, 0);
 	myLCD.print("WIDE FONT");

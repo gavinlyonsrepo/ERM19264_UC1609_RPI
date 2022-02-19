@@ -62,14 +62,14 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.1.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.4.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd ERM19264_UC1609_RPI-1.1
+cd ERM19264_UC1609_RPI-1.4
 sudo make
 ```
 
@@ -133,7 +133,6 @@ Four standard fonts available :
 | 3 | Seven segment | 4x8 | ASCII  0x20 - 0x7A |
 | 4 | Wide | 8x8 | no lowercase letters, ASCII 0x20 - 0x5A |
 
-
 In addition to those 4 fonts, The ability to use glyph-fonts is also
 available. I have packaged four fonts with the library, these are not installed
 in the system but are in the include folder of examples. 
@@ -152,9 +151,17 @@ Inverting only works with the standard fonts because the characters are a unifor
 
 *bitmaps*
 
-Bitmaps are written directly to screen unless Bitmap set to a buffer.
-Best to use multi-buffer to share screen between bitmaps and text + graphics.
-Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) use vertical addressing draw mode.
+There is a few different ways of displaying bitmaps, 
+
+| Num | Method | Buffer mode |   Data addressing | Note |
+| ------ | ------ | ------ | ------ |  ------ |  
+| 1 | LCDBitmap() | any  | Vertical |  Writes directly to screen , no buffer used. | 
+| 2 | LCDBuffer() | Multi or Single |  Vertical  |  For internal use mostly | 
+| 3 | Multi buffer init  | Multibuffer | Vertical  |  Can be used when initialising a MB | 
+| 4 | drawBitmap() | Multi or Single | Vertical | default,  setDrawBitmapAddr(true) | 
+| 5 | drawBitmap() | Multi or Single |  Horizontal | setDrawBitmapAddr(false) |
+
+See the bitmap example file for more details on each method. Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) , Bitmaps should be defined as const  buffers non-const, for methods 3 buffer can be initialised with bitmap data.
 
 *User adjustments*
 

@@ -28,6 +28,8 @@ void EndTest(void);
 void Test1(void);
 void Test2(void);
 void Test3(void);
+void Test4(void);
+void Test5(void);
 
 // ======================= Main ===================
 int main(int argc, char **argv) 
@@ -41,7 +43,7 @@ int main(int argc, char **argv)
 }
 
 //192x64px bitmap, SW used to make https://javl.github.io/image2cpp/ vertical addressing
-const  uint8_t fullscreenBitmap[1537] = {
+uint8_t fullScreenBuffer[1537] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x80, 0xc0, 0xe0, 0x60, 0x30, 0x30, 0x38, 0x18, 0x18, 0x18, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
 	0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
@@ -141,8 +143,8 @@ const  uint8_t fullscreenBitmap[1537] = {
 };
 
 
-// 'small circle image', 20x20px
-const uint8_t smallImage  [] = {
+// 'small circle image', 20x20px Vertical addressed 
+const uint8_t smallImage[] = {
 	0xff, 0x3f, 0x0f, 0x07, 0x03, 0x13, 0x33, 0x39, 0x39, 0x79, 0xf9, 0xf9, 0xfb, 0xf3, 0xf7, 0xe3,
 	0x87, 0x0f, 0x1f, 0xff, 0xf9, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x0f,
 	0x1d, 0x19, 0x10, 0x19, 0x0f, 0x00, 0xc0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0e, 0x0c, 0x0c, 0x08, 0x08,
@@ -150,7 +152,7 @@ const uint8_t smallImage  [] = {
 };
 
 
-// Mobile icon  16x8px
+// Mobile icon  16x8px Vertical addressed 
 const uint8_t SignalIcon[16] = 
 {
 	0x03, 0x05, 0x09, 0xff, 0x09, 0x05, 0xf3, 0x00, 0xf8, 
@@ -158,11 +160,20 @@ const uint8_t SignalIcon[16] =
 };
 
 
-// Battery Icon  16x8px 
+// Battery Icon  16x8px Vertical addressed 
 const uint8_t  BatIcon[16] = 
 {
 	0x00, 0x00, 0x7e, 0x42, 0x81, 0xbd, 0xbd, 0x81, 0xbd, 0xbd, 0x81, 
 	0xbd, 0xbd, 0x81, 0xff, 0x00
+};
+
+ // 'small BitmapHA', 20x20px bitmap bi-colour horizontal addressed Test 5
+const uint8_t smallBitmapHa[60] = {
+	0xff, 0xff, 0xf0, 0xfe, 0x0f, 0xf0, 0xf0, 0x02, 0xf0, 0xe1, 0xf8, 0x70,
+	0xc7, 0xfe, 0x30, 0xc3, 0xff, 0x10, 0x80, 0x7f, 0x10, 0x80, 0x3f, 0x90,
+	0x80, 0x3d, 0x80, 0x00, 0x30, 0x80, 0x00, 0x18, 0x80, 0x80, 0x1d, 0x80,
+	0x80, 0x0f, 0x10, 0x80, 0x00, 0x10, 0xc0, 0x00, 0x30, 0xc0, 0x00, 0x30,
+	0xe0, 0x00, 0x70, 0xf0, 0x00, 0xf0, 0xfc, 0x03, 0xf0, 0xff, 0x9f, 0xf0
 };
 
 void setup()
@@ -178,7 +189,9 @@ void myLoop()
 {
 	Test1(); // Method (1) LCD bitmap method
 	Test2(); // Method (2) LCD buffer method
-	Test3(); // Method (3) LCD update mutlibuffer mmethod
+	Test3(); // Method (3) LCD update multibuffer init method
+	Test4(); // Method (4) Drawbitmap to buffer method, vertical addressing
+	Test5(); // Method (5) Drawbitmap to buffer method, horizontal addressing
 }
 
 void EndTest()
@@ -192,8 +205,7 @@ void EndTest()
 void Test1(void)
 {
 	// Method (1) LCD bitmap method , writes data directly to screen
-	// x ,y,w,h, bitmap
-	myLCD.LCDBitmap(0, 0 , myLCDwidth, myLCDheight, fullscreenBitmap);
+	myLCD.LCDBitmap(0, 0 , myLCDwidth, myLCDheight, fullScreenBuffer);
 	bcm2835_delay(5000);
 	myLCD.LCDFillScreen(0x00); 
 }
@@ -203,7 +215,6 @@ void Test2(void)
 	// Method (2) LCD buffer method, writes data directly to screen
 	// This function is called internally by LCDupdate to print buffer
 	// to screen but can be called externally as well as shown.
-	// x ,y,w,h, bitmap
 	myLCD.LCDBuffer(50, 30, 20, 20, (uint8_t*)smallImage);
 	myLCD.LCDBuffer(135, 30, 20, 20, (uint8_t*)smallImage);
 	myLCD.LCDBuffer(0, 0, 16, 8, (uint8_t*)SignalIcon);
@@ -217,15 +228,44 @@ void Test3(void)
 	// Method (3) multibuffer mode sets bitmap to buffer var of struct
 	// then sets struct to activebuffer and updates screen buffer 
 	MultiBuffer Whole_screen;
-	Whole_screen.screenbitmap = (uint8_t*) fullscreenBitmap;
-	Whole_screen.width = myLCDwidth;
-	Whole_screen.height = myLCDheight;
-	Whole_screen.xoffset = 0; // offset on display
-	Whole_screen.yoffset = 0 ;
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	myLCD.LCDinitBufferStruct(&Whole_screen, fullScreenBuffer, myLCDwidth, myLCDheight, 0, 0);
 	
 	myLCD.ActiveBuffer = &Whole_screen;
 	
 	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 	myLCD.LCDFillScreen(0x00); 
+}
+
+void Test4(void)
+{
+	MultiBuffer MyStruct;
+	myLCD.LCDinitBufferStruct(&MyStruct, fullScreenBuffer, 192, 64, 0, 0);  
+	myLCD.ActiveBuffer = &MyStruct;
+	myLCD.LCDclearBuffer();   // Clear active buffer
+
+	myLCD.setDrawBitmapAddr(true); // for Bitmap Data Vertical  addressed
+	myLCD.drawBitmap(30, 0, smallImage, 20, 20, FOREGROUND, BACKGROUND);
+	myLCD.drawBitmap(30, 20, smallImage, 20, 20, BACKGROUND, FOREGROUND);
+	myLCD.drawBitmap(0,   5, SignalIcon, 16, 8,FOREGROUND, BACKGROUND);
+	myLCD.drawBitmap(150, 5, BatIcon, 16, 8 , FOREGROUND, BACKGROUND);
+
+	myLCD.LCDupdate();
+	bcm2835_delay(5000);
+}
+
+void Test5(void)
+{
+	MultiBuffer MyStruct;
+	myLCD.LCDinitBufferStruct(&MyStruct, fullScreenBuffer, 192, 64, 0, 0);  
+	myLCD.ActiveBuffer = &MyStruct;
+	myLCD.LCDclearBuffer();   // Clear active buffer
+
+	myLCD.setDrawBitmapAddr(false); // for Bitmap Data Horziontal addressed
+	myLCD.drawBitmap(10, 25, smallBitmapHa, 20, 20, FOREGROUND, BACKGROUND);
+	myLCD.drawBitmap(100, 20, smallBitmapHa, 20, 20, BACKGROUND, FOREGROUND);
+	myLCD.drawBitmap(60, 20, smallBitmapHa, 20, 20, BACKGROUND, FOREGROUND);
+	myLCD.LCDupdate();
+	bcm2835_delay(5000);
 }

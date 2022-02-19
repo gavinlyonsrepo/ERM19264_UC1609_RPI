@@ -73,12 +73,6 @@
 #define UC1609_INIT_DELAY2 3 // mS delay,  before reset called
 #define UC1609_HIGHFREQ_DELAY 0 // uS used in software SPI , option.
 
-// Font
-#define UC1609_ASCII_OFFSET 0x00
-#define UC1609_ASCII_OFFSET_SP 0x20 // Starts at Space
-#define UC1609_FONTPADDING  send_data(0x00)
-#define UC1609_FONTWIDTH 5
-
 // GPIO
 #define UC1609_CS_SetHigh bcm2835_gpio_write(_LCD_CS, HIGH)
 #define UC1609_CS_SetLow bcm2835_gpio_write(_LCD_CS, LOW)
@@ -99,7 +93,6 @@ struct MultiBuffer
   uint8_t height=0 ; // bitmap y size
   int16_t xoffset = 0; // x offset
   int16_t yoffset = 0; // y offset
-  int8_t data = 0;
 };
 
 //class
@@ -112,9 +105,7 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 
 	~ERM19264_UC1609(){};
 
-   MultiBuffer* ActiveBuffer;
-
-// Functions not needed for no_buffer mode
+   MultiBuffer* ActiveBuffer= NULL;
 
 	virtual void drawPixel(int16_t x, int16_t y, uint8_t colour) override;
 	void LCDupdate(void);
@@ -135,6 +126,8 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	void LCDSPIon(void);
 	void LCDSPIoff(void);
 	bool LCDIssleeping(void);
+	void LCDinitBufferStruct(MultiBuffer *p, uint8_t* mybuffer, 
+								uint8_t w, uint8_t h, int16_t x, int16_t y); 
 
   private:
 

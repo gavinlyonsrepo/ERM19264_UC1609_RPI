@@ -20,13 +20,16 @@
 
 // LCD setup
 #define LCDcontrast 0x50 //Contrast 00 to FF , 0x49 is default. 
-#define mylcdwidth  192
-#define mylcdheight 64
+#define myLCDwidth  192
+#define myLCDheight 64
 // GPIO 
 #define RST 25 // GPIO pin number pick any you want
 #define CD 24 // GPIO pin number pick any you want 
 
-ERM19264_UC1609 mylcd(mylcdwidth ,mylcdheight , RST, CD ) ;  
+ERM19264_UC1609 mylcd(myLCDwidth ,myLCDheight , RST, CD ) ;  
+
+// Define a full screen buffer and struct
+uint8_t  screenBuffer[myLCDwidth * (myLCDheight/8)];
 
 // =============== Function prototype ================
 void setup(void);
@@ -65,15 +68,10 @@ void EndTest()
 
 void myTest()
 {
-	// Define a full screen buffer and struct
-	uint8_t  screenBuffer[mylcdwidth * (mylcdheight/8)];
 	
 	MultiBuffer whole_screen;
-	whole_screen.screenbitmap = (uint8_t*) &screenBuffer;
-	whole_screen.width = mylcdwidth;
-	whole_screen.height = mylcdheight;
-	whole_screen.xoffset = 0;
-	whole_screen.yoffset = 0;
+	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
+	mylcd.LCDinitBufferStruct(&whole_screen, screenBuffer, myLCDwidth, myLCDheight, 0, 0);
 	
 	mylcd.ActiveBuffer =  &whole_screen; // set buffer object
 	mylcd.LCDclearBuffer(); // clear the buffer

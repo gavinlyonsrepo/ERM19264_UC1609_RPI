@@ -1,21 +1,9 @@
-/*
-This is the core graphics library for all ADAFRUIT displays, providing a common
-set of graphics primitives (points, lines, circles, etc.).  It needs to be
-paired with a hardware-specific library for each display device we carry
-(to handle the lower-level functions).
-Adafruit invests time and resources providing this open source code, please
-support Adafruit & open-source hardware by purchasing products from Adafruit!
-Copyright (c) 2013 Adafruit Industries.  All rights reserved.
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-- Redistributions of source code must retain the above copyright notice.
-*/
 
 /*
 * Project Name: ERM19264_UC1609_RPI
 * File:ERM19264_graphics.cpp
 * Description: ERM19264 LCD driven by UC1609C controller header 
-* file for the ERM19264 graphics functions based on Adafruit graphics library( see above)
+* file for the ERM19264 graphics functions 
 * Author: Gavin Lyons.
 * URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 */
@@ -35,6 +23,7 @@ ERM19264_graphics::ERM19264_graphics(int16_t w, int16_t h):
   textsize  = 1;
   textcolor = textbgcolor = 0xFF;
   wrap      = true;
+  drawBitmapAddr = true; // True = vertical , false = horizontal
 }
 
 // Draw a circle outline
@@ -145,7 +134,6 @@ void ERM19264_graphics::fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
   }
 }
 
-// Bresenham's algorithm
 void ERM19264_graphics::drawLine(int16_t x0, int16_t y0,
 				int16_t x1, int16_t y1,
 				uint8_t color) {
@@ -221,7 +209,6 @@ void ERM19264_graphics::fillScreen(uint8_t color) {
 // Draw a rounded rectangle
 void ERM19264_graphics::drawRoundRect(int16_t x, int16_t y, int16_t w,
   int16_t h, int16_t r, uint8_t color) {
-  // smarter version
   drawFastHLine(x+r  , y    , w-2*r, color); // Top
   drawFastHLine(x+r  , y+h-1, w-2*r, color); // Bottom
   drawFastVLine(x    , y+r  , h-2*r, color); // Left
@@ -236,10 +223,8 @@ void ERM19264_graphics::drawRoundRect(int16_t x, int16_t y, int16_t w,
 // Fill a rounded rectangle
 void ERM19264_graphics::fillRoundRect(int16_t x, int16_t y, int16_t w,
 				 int16_t h, int16_t r, uint8_t color) {
-  // smarter version
   fillRect(x+r, y, w-2*r, h, color);
 
-  // draw four corners
   fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
   fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
 }
@@ -260,7 +245,6 @@ void ERM19264_graphics::fillTriangle ( int16_t x0, int16_t y0,
 
   int16_t a, b, y, last;
 
-  // Sort coordinates by Y order (y2 >= y1 >= y0)
   if (y0 > y1) {
 	swap(y0, y1); swap(x0, x1);
   }
@@ -292,12 +276,6 @@ void ERM19264_graphics::fillTriangle ( int16_t x0, int16_t y0,
 	sa   = 0,
 	sb   = 0;
 
-  // For upper part of triangle, find scanline crossings for segments
-  // 0-1 and 0-2.  If y1=y2 (flat-bottomed triangle), the scanline y1
-  // is included here (and second loop will be skipped, avoiding a /0
-  // error there), otherwise scanline y1 is skipped here and handled
-  // in the second loop...which also avoids a /0 error here if y0=y1
-  // (flat-topped triangle).
   if(y1 == y2) last = y1;   // Include y1 scanline
   else         last = y1-1; // Skip it
 
@@ -314,8 +292,6 @@ void ERM19264_graphics::fillTriangle ( int16_t x0, int16_t y0,
 	drawFastHLine(a, y, b-a+1, color);
   }
 
-  // For lower part of triangle, find scanline crossings for segments
-  // 0-2 and 1-2.  This loop is skipped if y1=y2.
   sa = dx12 * (y - y1);
   sb = dx02 * (y - y0);
   for(; y<=y2; y++) {
@@ -323,10 +299,6 @@ void ERM19264_graphics::fillTriangle ( int16_t x0, int16_t y0,
 	b   = x0 + sb / dy02;
 	sa += dx12;
 	sb += dx02;
-	/* longhand:
-	a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
-	b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-	*/
 	if(a > b) swap(a,b);
 	drawFastHLine(a, y, b-a+1, color);
   }
@@ -371,16 +343,16 @@ void ERM19264_graphics::drawChar(int16_t x, int16_t y, unsigned char c,
 	{
 	switch (_FontNumber) 
 	{
-		case 1:
+		case UC1609Font_Default:
 			line = Font_One[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
-		case 2:
+		case UC1609Font_Thick:
 			line = Font_Two[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
-		case 3:
+		case UC1609Font_Seven_Seg:
 			line = Font_Three[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
-		case 4:
+		case UC1609Font_Wide:
 			line = Font_Four[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		default:
@@ -514,51 +486,35 @@ void ERM19264_graphics::drawCharGlyph(uint8_t x, uint8_t y, uint8_t c, uint8_t c
 }
 
 // Desc :  Set the font number
-// Param1: fontnumber 1-5
+// Param1: fontnumber 1-4
 // 1=default 2=thick 3=seven segment 4=wide
-// Fonts must be enabled at top of header file.
 
-void ERM19264_graphics::setFontNum(uint8_t FontNumber) 
+void ERM19264_graphics::setFontNum(LCD_FONT_TYPE_e FontNumber) 
 {
 	_FontNumber = FontNumber;
 	
-	enum OLED_Font_width
-	{
-		FONT_W_FIVE = 5, FONT_W_SEVEN = 7, FONT_W_FOUR = 4, FONT_W_EIGHT = 8
-	}; // width of the font in bytes cols.
-	
-	enum OLED_Font_offset
-	{
-		FONT_O_EXTEND = UC1609_ASCII_OFFSET, FONT_O_SP = UC1609_ASCII_OFFSET_SP
-	}; // font offset in the ASCII table
-	
-	enum OLED_Font_height
-	{
-		FONT_H_8 = 8, FONT_H_32 = 32
-	}; // width of the font in bits
-	
-	enum OLED_Font_width setfontwidth;
-	enum OLED_Font_offset setoffset;
-	enum OLED_Font_height setfontheight;
-	
+	LCD_Font_width_e setfontwidth;
+	LCD_Font_offset_e setoffset;
+	LCD_Font_height_e setfontheight;
+
 	switch (_FontNumber) {
 		case 1:  // Norm default 5 by 8
-			_CurrentFontWidth = (setfontwidth = FONT_W_FIVE);
+			_CurrentFontWidth = (setfontwidth = FONT_W_5);
 			_CurrentFontoffset =  (setoffset = FONT_O_EXTEND);
 			_CurrentFontheight = (setfontheight=FONT_H_8);
 		break; 
 		case 2: // Thick 7 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = (setfontwidth = FONT_W_SEVEN);
+			_CurrentFontWidth = (setfontwidth = FONT_W_7);
 			_CurrentFontoffset =  (setoffset = FONT_O_SP);
 			_CurrentFontheight = (setfontheight=FONT_H_8);
 		break; 
 		case 3:  // Seven segment 4 by 8
-			_CurrentFontWidth = (setfontwidth = FONT_W_FOUR);
+			_CurrentFontWidth = (setfontwidth = FONT_W_4);
 			_CurrentFontoffset =  (setoffset = FONT_O_SP);
 			_CurrentFontheight = (setfontheight=FONT_H_8);
 		break;
 		case 4: // Wide  8 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = (setfontwidth = FONT_W_EIGHT);
+			_CurrentFontWidth = (setfontwidth = FONT_W_8);
 			_CurrentFontoffset =  (setoffset = FONT_O_SP);
 			_CurrentFontheight = (setfontheight=FONT_H_8);
 		break;  
@@ -568,4 +524,66 @@ void ERM19264_graphics::setFontNum(uint8_t FontNumber)
 	}
 }
 
+// Draw a 1-bit color bitmap at the specified x, y position from the
+// provided bitmap buffer using colour as the
+// foreground colour and bg as the background colour.
+// Note: Variable drawBitmapAddr controls data addressing
+// drawBitmapAddr  = true Vertical  data addressing
+// drawBitmapAddr  = false Horizontal data addressing
+void ERM19264_graphics::drawBitmap(int16_t x, int16_t y,
+						const uint8_t *bitmap, int16_t w, int16_t h,
+						uint8_t color, uint8_t bg) {
+							
+if (drawBitmapAddr== true)
+{
+// Vertical byte bitmaps mode 
+	uint8_t vline;
+	int16_t i, j, r = 0, yin = y;
+	
+	for (i=0; i<(w+1); i++ ) {
+		if (r == (h+7)/8 * w) break;
+		vline = bitmap [ r] ;
+		r++;
+		if (i == w) {
+			y = y+8;
+			i = 0;
+		}
+		
+		for (j=0; j<8; j++ ) {
+			if (y+j-yin == h) break;
+			if (vline & 0x1) {
+				drawPixel(x+i, y+j, color);
+			}
+			else {
+				drawPixel(x+i, y+j, bg);
+			}	
+			vline >>= 1;
+		}
+	}
+} else if (drawBitmapAddr == false) {
+// Horizontal byte bitmaps mode 
+	int16_t byteWidth = (w + 7) / 8;
+	uint8_t byte = 0;
+	for (int16_t j = 0; j < h; j++, y++) 
+	{
+		for (int16_t i = 0; i < w; i++) 
+		{
+			if (i & 7)
+				byte <<= 1;
+			else
+				byte = bitmap[j * byteWidth + i / 8];
+			drawPixel(x+i, y, (byte & 0x80) ? color : bg);
+		}
+	}
+
+} // end of elseif
+} // end of function
+
+//Func Desc : sets the data addressing mode in drawBitmap function.
+//Param 1 boolean mode  , true default
+// True =  bitmap data vertically addressed 
+// False = bitmap data horizontally addressed 
+void ERM19264_graphics::setDrawBitmapAddr(bool mode) {
+	drawBitmapAddr = mode;
+}
 //*********************** EOF ********************88
