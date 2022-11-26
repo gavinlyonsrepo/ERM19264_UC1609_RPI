@@ -6,6 +6,7 @@ Table of contents
   * [Overview](#overview)
   * [Output](#output)
   * [Installation](#installation)
+  * [Test](#test)
   * [Hardware](#hardware)
   * [Features](#features)
 
@@ -73,7 +74,10 @@ cd ERM19264_UC1609_RPI-1.4
 sudo make
 ```
 
-5. Next step is to test LCD and installed library with an example.
+Test
+---------------------------------------
+
+1. Next step is to test LCD and installed library with an example.
 Wire up your LCD. Next enter the examples folder and run the makefile in THAT folder, 
 This makefile builds the examples file using the just installed library.
 and creates a test exe file in "bin". Be sure to use "sudo" as the bcm2835 requires root permissions by default [ see here for more details on that](http://www.airspayce.com/mikem/bcm2835/) 
@@ -86,8 +90,8 @@ make
 sudo bin/test
 ```
 
-6. There are seven examples files to try out. 
-To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY. Comment out the rest and repeat step 5.
+2. There are seven examples files to try out. 
+To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY. Comment out the rest and repeat step 1.
 
 
 Hardware
