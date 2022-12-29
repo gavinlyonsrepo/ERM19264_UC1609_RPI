@@ -9,7 +9,7 @@
 #include <bcm2835.h>
 #include <time.h>
 #include <stdio.h>
-#include "ERM19264_UC1609.h"
+#include "ERM19264_UC1609.hpp"
 
 #define LCDcontrast 0x49 //Constrast 00 to FF , 0x49 is default.
 #define myLCDwidth  192

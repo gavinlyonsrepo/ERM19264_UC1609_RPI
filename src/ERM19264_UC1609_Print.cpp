@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "ERM19264_UC1609_Print.h"
+#include "ERM19264_UC1609_Print.hpp"
 
 // Public Methods ///////////////
 /* default implementation: may be overridden */

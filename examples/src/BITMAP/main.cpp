@@ -143,15 +143,6 @@ uint8_t fullScreenBuffer[1537] = {
 };
 
 
-// 'small circle image', 20x20px Vertical addressed 
-const uint8_t smallImage[] = {
-	0xff, 0x3f, 0x0f, 0x07, 0x03, 0x13, 0x33, 0x39, 0x39, 0x79, 0xf9, 0xf9, 0xfb, 0xf3, 0xf7, 0xe3,
-	0x87, 0x0f, 0x1f, 0xff, 0xf9, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x0f,
-	0x1d, 0x19, 0x10, 0x19, 0x0f, 0x00, 0xc0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0e, 0x0c, 0x0c, 0x08, 0x08,
-	0x08, 0x00, 0x00, 0x08, 0x08, 0x08, 0x0c, 0x0c, 0x0e, 0x0f, 0x0f, 0x0f
-};
-
-
 // Mobile icon  16x8px Vertical addressed 
 const uint8_t SignalIcon[16] = 
 {
@@ -167,14 +158,10 @@ const uint8_t  BatIcon[16] =
 	0xbd, 0xbd, 0x81, 0xff, 0x00
 };
 
- // 'small BitmapHA', 20x20px bitmap bi-colour horizontal addressed Test 5
-const uint8_t smallBitmapHa[60] = {
-	0xff, 0xff, 0xf0, 0xfe, 0x0f, 0xf0, 0xf0, 0x02, 0xf0, 0xe1, 0xf8, 0x70,
-	0xc7, 0xfe, 0x30, 0xc3, 0xff, 0x10, 0x80, 0x7f, 0x10, 0x80, 0x3f, 0x90,
-	0x80, 0x3d, 0x80, 0x00, 0x30, 0x80, 0x00, 0x18, 0x80, 0x80, 0x1d, 0x80,
-	0x80, 0x0f, 0x10, 0x80, 0x00, 0x10, 0xc0, 0x00, 0x30, 0xc0, 0x00, 0x30,
-	0xe0, 0x00, 0x70, 0xf0, 0x00, 0xf0, 0xfc, 0x03, 0xf0, 0xff, 0x9f, 0xf0
-};
+  // Mobile icon  16x8px horizontal addressed 
+ const  uint8_t  SignalIconHa[16] = {
+	0xfe, 0x02, 0x92, 0x0a, 0x54, 0x2a, 0x38, 0xaa, 0x12, 0xaa, 0x12, 0xaa, 0x12, 0xaa, 0x12, 0xaa
+	};
 
 void setup()
 {
@@ -215,8 +202,6 @@ void Test2(void)
 	// Method (2) LCD buffer method, writes data directly to screen
 	// This function is called internally by LCDupdate to print buffer
 	// to screen but can be called externally as well as shown.
-	myLCD.LCDBuffer(50, 30, 20, 20, (uint8_t*)smallImage);
-	myLCD.LCDBuffer(135, 30, 20, 20, (uint8_t*)smallImage);
 	myLCD.LCDBuffer(0, 0, 16, 8, (uint8_t*)SignalIcon);
 	myLCD.LCDBuffer(176, 0, 16, 8, (uint8_t*)BatIcon);
 	bcm2835_delay(5000);
@@ -246,9 +231,7 @@ void Test4(void)
 	myLCD.LCDclearBuffer();   // Clear active buffer
 
 	myLCD.setDrawBitmapAddr(true); // for Bitmap Data Vertical  addressed
-	myLCD.drawBitmap(30, 0, smallImage, 20, 20, FOREGROUND, BACKGROUND);
-	myLCD.drawBitmap(30, 20, smallImage, 20, 20, BACKGROUND, FOREGROUND);
-	myLCD.drawBitmap(0,   5, SignalIcon, 16, 8,FOREGROUND, BACKGROUND);
+	myLCD.drawBitmap(0,   5, SignalIcon, 16, 8, FOREGROUND, BACKGROUND);
 	myLCD.drawBitmap(150, 5, BatIcon, 16, 8 , FOREGROUND, BACKGROUND);
 
 	myLCD.LCDupdate();
@@ -263,9 +246,9 @@ void Test5(void)
 	myLCD.LCDclearBuffer();   // Clear active buffer
 
 	myLCD.setDrawBitmapAddr(false); // for Bitmap Data Horziontal addressed
-	myLCD.drawBitmap(10, 25, smallBitmapHa, 20, 20, FOREGROUND, BACKGROUND);
-	myLCD.drawBitmap(100, 20, smallBitmapHa, 20, 20, BACKGROUND, FOREGROUND);
-	myLCD.drawBitmap(60, 20, smallBitmapHa, 20, 20, BACKGROUND, FOREGROUND);
+	myLCD.drawBitmap(10, 25, SignalIconHa, 16, 8, FOREGROUND, BACKGROUND);
+	myLCD.drawBitmap(100, 20, SignalIconHa, 16, 8, BACKGROUND, FOREGROUND);
+	myLCD.drawBitmap(60, 20, SignalIconHa, 16, 8, BACKGROUND, FOREGROUND);
 	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 }

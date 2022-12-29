@@ -8,7 +8,7 @@
 #include <bcm2835.h>
 #include <time.h>
 #include <stdio.h>
-#include "ERM19264_UC1609.h"
+#include "ERM19264_UC1609.hpp"
 
 // LCD Setup
 #define LCDcontrast 0x49 //Constrast 00 to FF , 0x80 is default. user adjust
@@ -31,12 +31,12 @@ void myTest(void);
 void DisplayText(MultiBuffer* );
 void DisplayGraphics(MultiBuffer* );
 void EndTest(void);
+void TestReset(void);
 
 // ======================= Main ===================
 int main(int argc, char **argv)
 {
 	if(!bcm2835_init()){return -1;}
-
 
 	setup();
 	myTest();
@@ -65,6 +65,11 @@ void EndTest()
 	printf("LCD End\r\n");
 }
 
+void TestReset()
+{
+TestReset();
+}
+
 void myTest()
 {
 
@@ -89,6 +94,10 @@ void myTest()
 // Test 7 thick font 2 (NO LOWERCASE)
 // Test 8 seven seg font 3
 // Test 9 wide font (NO LOWERCASE)
+// Test 10 tiny font 5
+// Test 11 Homespun font 6
+// Test 12 print function
+// Test 13 drawtext
 void DisplayText(MultiBuffer* targetBuffer)
 {
 
@@ -104,7 +113,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	// Test 2
 	myLCD.setTextSize(2);
 	myLCD.setCursor(0, 30);
-	int count = 123;
+	int count = -123;
 	myLCD.print(count);
 
 	// Test 3
@@ -116,9 +125,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	// Test 4
 	myLCD.drawChar(95, 15 , 'H', FOREGROUND, BACKGROUND, 6);
 
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
 
 	// Test 5
 	myLCD.setCursor(0, 0);
@@ -135,9 +142,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 		myLCD.print(i);
 		bcm2835_delay(DisplayDelay2);
 	}
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
 
 	myLCD.setCursor(0, 0);
 	myLCD.setTextColor(FOREGROUND);
@@ -160,9 +165,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 		bcm2835_delay(DisplayDelay2);
 	}
 
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
 	
 	// Test 7
 	myLCD.setFontNum(UC1609Font_Thick);
@@ -175,9 +178,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.setCursor(0, 45);
 	myLCD.setTextSize(2);
 	myLCD.print("TEST");
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
 	
 	// Test 8
 	myLCD.setFontNum(UC1609Font_Seven_Seg);
@@ -189,9 +190,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.setCursor(0, 30);
 	myLCD.setTextSize(5);
 	myLCD.print("14:30");
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
 	
 	// Test 9
 	myLCD.setFontNum(UC1609Font_Wide);
@@ -204,9 +203,56 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.setTextSize(2);
 	myLCD.print("13:57");
 	myLCD.drawChar(120, 20 , 'H', FOREGROUND, BACKGROUND, 4);
-	myLCD.LCDupdate();  // Write to the buffer
-	bcm2835_delay(DisplayDelay1);
-	myLCD.LCDclearBuffer();
+	TestReset();
+	
+	// Test 10
+	myLCD.setFontNum(UC1609Font_Tiny);
+	myLCD.setTextSize(1);
+	myLCD.setCursor(0, 0);
+	myLCD.print("tiny FONT");
+	myLCD.setCursor(0, 9);
+	myLCD.print("12345678901234ABCDEF");
+	myLCD.setCursor(0, 30);
+	myLCD.setTextSize(2);
+	myLCD.print("11:59");
+	myLCD.drawChar(120, 20 , 'H', FOREGROUND, BACKGROUND, 4);
+	TestReset();
+	
+	// Test 11
+	myLCD.setFontNum(UC1609Font_Homespun);
+	myLCD.setTextSize(1);
+	myLCD.setCursor(0, 0);
+	myLCD.print("homespun font");
+	myLCD.setCursor(0, 9);
+	myLCD.print("12345678901234ABCDEF");
+	myLCD.setCursor(0, 30);
+	myLCD.setTextSize(2);
+	myLCD.print("12:52");
+	myLCD.drawChar(120, 20 , 'H', FOREGROUND, BACKGROUND, 4);
+	TestReset();
+	
+	// Test 12
+	myLCD.setFontNum(OLEDFontType_Default);
+	myLCD.setTextSize(1);
+	myLCD.setCursor(0, 0);
+	myLCD.print(47 , DEC);
+	myLCD.setCursor(0, 10);
+	myLCD.print(47 , HEX); 
+	myLCD.setCursor(0, 20);
+	myLCD.print(47, BIN);
+	myLCD.setCursor(0, 30);
+	myLCD.print(47 , OCT);
+	myLCD.setCursor(0, 40);
+	myLCD.print(-3.788, 2); // print -3.79
+	TestReset();
+	
+	// Test 13
+	char myString[9] = {'1', '3', ':', '2', '6', ':', '1', '8'};
+	myLCD.setFontNum(OLEDFontType_Tiny);
+	myLCD.drawText(0,0, myString, FOREGROUND, BACKGROUND,1);
+	myLCD.setFontNum(OLEDFontType_Wide);
+	myLCD.drawText(0,32, myString, FOREGROUND, BACKGROUND,2);
+	TestReset();
 	
 } // end DisplayText
 

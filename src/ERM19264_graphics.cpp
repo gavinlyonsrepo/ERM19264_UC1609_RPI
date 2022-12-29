@@ -9,9 +9,9 @@
 */
 
 #include <stdbool.h>
-#include "ERM19264_UC1609.h"
-#include "ERM19264_graphics.h"
-#include "ERM19264_graphics_font.cpp"
+#include "ERM19264_UC1609.hpp"
+#include "ERM19264_graphics.hpp"
+#include "ERM19264_graphics_font.hpp"
 
 
 ERM19264_graphics::ERM19264_graphics(int16_t w, int16_t h):
@@ -344,16 +344,22 @@ void ERM19264_graphics::drawChar(int16_t x, int16_t y, unsigned char c,
 	switch (_FontNumber) 
 	{
 		case UC1609Font_Default:
-			line = Font_One[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontDefaultptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Thick:
-			line = Font_Two[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontThickptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Seven_Seg:
-			line = Font_Three[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontSevenSegptr;[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Wide:
-			line = Font_Four[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontWideptr;[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+		break;
+		case UC1609Font_Tiny:
+			line =pFontTinyptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+		break;
+		case UC1609Font_Homespun:
+			line = pFontHomeSpunptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		default:
 			printf("Error: Wrong font number ,must be 1-4\n");
@@ -486,40 +492,47 @@ void ERM19264_graphics::drawCharGlyph(uint8_t x, uint8_t y, uint8_t c, uint8_t c
 }
 
 // Desc :  Set the font number
-// Param1: fontnumber 1-4
-// 1=default 2=thick 3=seven segment 4=wide
+// Param1: fontnumber 1-6
+// 1=default 2=thick 3=seven segment 4=wide 5=tiny 6=homespun
 
-void ERM19264_graphics::setFontNum(LCD_FONT_TYPE_e FontNumber) 
+void ERM19264_graphics::setFontNum(LCDFontType_e FontNumber) 
 {
 	_FontNumber = FontNumber;
-	
-	LCD_Font_width_e setfontwidth;
-	LCD_Font_offset_e setoffset;
-	LCD_Font_height_e setfontheight;
-
-	switch (_FontNumber) {
-		case 1:  // Norm default 5 by 8
-			_CurrentFontWidth = (setfontwidth = FONT_W_5);
-			_CurrentFontoffset =  (setoffset = FONT_O_EXTEND);
-			_CurrentFontheight = (setfontheight=FONT_H_8);
+		
+	switch (_FontNumber) 
+	{
+		case UC1609Font_Default:  // Norm default 5 by 8
+			_CurrentFontWidth = UC1609FontWidth_5;
+			_CurrentFontoffset =  UC1609FontOffset_Extend;
+			_CurrentFontheight = UC1609FontHeight_8;
 		break; 
-		case 2: // Thick 7 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = (setfontwidth = FONT_W_7);
-			_CurrentFontoffset =  (setoffset = FONT_O_SP);
-			_CurrentFontheight = (setfontheight=FONT_H_8);
+		case UC1609Font_Thick: // Thick 7 by 8 (NO LOWERCASE LETTERS)
+			_CurrentFontWidth = UC1609FontWidth_7;
+			_CurrentFontoffset = UC1609FontOffset_Space;
+			_CurrentFontheight = UC1609FontHeight_8;
 		break; 
-		case 3:  // Seven segment 4 by 8
-			_CurrentFontWidth = (setfontwidth = FONT_W_4);
-			_CurrentFontoffset =  (setoffset = FONT_O_SP);
-			_CurrentFontheight = (setfontheight=FONT_H_8);
+		case UC1609Font_Seven_Seg:  // Seven segment 4 by 8
+			_CurrentFontWidth = UC1609FontWidth_4;
+			_CurrentFontoffset = UC1609FontOffset_Space;
+			_CurrentFontheight = UC1609FontHeight_8;
 		break;
-		case 4: // Wide  8 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = (setfontwidth = FONT_W_8);
-			_CurrentFontoffset =  (setoffset = FONT_O_SP);
-			_CurrentFontheight = (setfontheight=FONT_H_8);
-		break;  
-		default:
-			printf("Error: Wrong font number ,must be 1-4\n");
+		case UC1609Font_Wide : // Wide  8 by 8 (NO LOWERCASE LETTERS)
+			_CurrentFontWidth = UC1609FontWidth_8;
+			_CurrentFontoffset = UC1609FontOffset_Space;
+			_CurrentFontheight = UC1609FontHeight_8;
+		break; 
+		case UC1609Font_Tiny:  // tiny 3 by 8
+			_CurrentFontWidth = UC1609FontWidth_3;
+			_CurrentFontoffset =  UC1609FontOffset_Space;
+			_CurrentFontheight = UC1609FontHeight_8;
+		break;
+		case UC1609Font_Homespun: // homespun 7 by 8 
+			_CurrentFontWidth = UC1609FontWidth_7;
+			_CurrentFontoffset = UC1609FontOffset_Space;
+			_CurrentFontheight = UC1609FontHeight_8;
+		break;
+		default: // if wrong font num passed in,  set to default
+			printf("Error: Wrong font number ,must be 1-6\n");
 		break;
 	}
 }
@@ -586,4 +599,31 @@ if (drawBitmapAddr== true)
 void ERM19264_graphics::setDrawBitmapAddr(bool mode) {
 	drawBitmapAddr = mode;
 }
-//*********************** EOF ********************88
+
+// Desc: Writes text string (*ptext) on the LCD 
+// Param 1 , 2 : coordinates (x, y).
+// Param 3: pointer to string 
+// Param 4: color 
+// Param 5: background color
+// Notes for font 1- 6 only
+void ERM19264_graphics::drawText(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg, uint8_t size) {
+	if (_FontNumber >= UC1609Font_Bignum){return;}
+	uint8_t cursor_x, cursor_y;
+	cursor_x = x, cursor_y = y;
+	
+	while (*pText != '\0') 
+	{
+		if (wrap && ((cursor_x + size * _CurrentFontWidth) > _width)) 
+		{
+			cursor_x = 0;
+			cursor_y = cursor_y + size * 7 + 3;
+			if (cursor_y > _height) cursor_y = _height;
+		}
+		drawChar(cursor_x, cursor_y, *pText, color, bg, size);
+		cursor_x = cursor_x + size * (_CurrentFontWidth + 1);
+		if (cursor_x > _width) cursor_x = _width;
+		pText++;
+	}
+}
+
+//*********************** EOF ********************

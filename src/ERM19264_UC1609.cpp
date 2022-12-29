@@ -6,7 +6,7 @@
 * URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 */
 
-#include "ERM19264_UC1609.h"
+#include "ERM19264_UC1609.hpp"
 
 // Class Constructors 2 off:
 // HWSPI buffer

@@ -10,7 +10,7 @@
 #include <bcm2835.h>
 #include <time.h>
 #include <stdio.h>
-#include "ERM19264_UC1609.h"
+#include "ERM19264_UC1609.hpp"
 
 // LCD
 #define LCDcontrast 0x50 //Constrast 00 to FF , 0x50 is default. user adjust
@@ -128,7 +128,7 @@ void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" fps");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.4");
+	myLCD.print("V 1.5");
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
 	myLCD.LCDupdate();
 }

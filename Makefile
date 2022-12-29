@@ -61,10 +61,11 @@ install:
 	@echo
 	@echo "[INSTALL HEADERS]"
 	@if ( test ! -d $(PREFIX)/include ) ; then mkdir -p $(PREFIX)/include ; fi
-	@cp -vf  include/ERM19264_UC1609.h $(PREFIX)/include
-	@cp -vf  include/ERM19264_UC1609_Print.h $(PREFIX)/include
-	@cp -vf  include/ERM19264_graphics.h $(PREFIX)/include
-	@cp -vf  include/ERM19264_gfxfont.h $(PREFIX)/include
+	@cp -vf  include/ERM19264_UC1609.hpp $(PREFIX)/include
+	@cp -vf  include/ERM19264_UC1609_Print.hpp $(PREFIX)/include
+	@cp -vf  include/ERM19264_graphics.hpp $(PREFIX)/include
+	@cp -vf  include/ERM19264_font.hpp $(PREFIX)/include
+	@cp -vf  include/ERM19264_gfxfont.hpp $(PREFIX)/include
 	@echo "[DONE!]"
 
 # Uninstall the library
@@ -74,10 +75,11 @@ uninstall:
 	@rm -vf ${LIBDIR}/${LIB}.*
 
 	@echo "[UNINSTALL HEADERS]"
-	@rm -rvf  $(PREFIX)/include/ERM19264_UC1609.h
-	@rm -rvf  $(PREFIX)/include/ERM19264_UC1609_Print.h
-	@rm -rvf  $(PREFIX)/include/ERM19264_graphics.h
-	@rm -rvf  $(PREFIX)/include/ERM19264_gfxfont.h
+	@rm -rvf  $(PREFIX)/include/ERM19264_UC1609.hpp
+	@rm -rvf  $(PREFIX)/include/ERM19264_UC1609_Print.hpp
+	@rm -rvf  $(PREFIX)/include/ERM19264_graphics.hpp
+	@rm -rvf  $(PREFIX)/include/ERM19264_font.hpp
+	@rm -rvf  $(PREFIX)/include/ERM19264_gfxfont.hpp
 	@echo "[DONE!]"
 
 # clear build files

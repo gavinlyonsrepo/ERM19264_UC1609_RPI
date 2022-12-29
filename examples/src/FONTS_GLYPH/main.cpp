@@ -10,7 +10,7 @@
 #include <time.h>
 #include <stdio.h>
 
-#include "ERM19264_UC1609.h"
+#include "ERM19264_UC1609.hpp"
 
 // Include the fonts for test
 #include "FreeSans12pt7b.h"
