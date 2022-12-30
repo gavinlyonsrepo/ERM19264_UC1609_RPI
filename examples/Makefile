@@ -29,6 +29,9 @@ TARGET=$(BIN)/test
 
 all: clean pre-build $(TARGET) 
 
+run:
+	sudo $(TARGET)
+
 pre-build:
 	@echo '****************'
 	@echo 'START!'

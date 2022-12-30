@@ -18,7 +18,7 @@ Overview
 
 1. Dynamic install-able system level Raspberry Pi C++ library.
 2. Inverse, Scroll, rotate and contrast control.
-3. 4 standard ASCII font + glyph font support
+3. 6 standard ASCII font + glyph font support
 4. Graphics class included.
 5. Sleep mode.
 6. Multi-buffer mode
@@ -31,9 +31,9 @@ Overview
 * This is a Port of my Arduino [library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
 * Developed on 
 	1. Raspberry PI 3 model b, 
-	2. C++ complier g++ (Raspbian 6.3.0-18)
-	3. Raspbian 9.13 stretch OS
-	4. bcm2835 Library 1.68 
+	2. C++ complier g++ (Raspbian 8.3.0-6)
+	3. Raspbian 10 buster  OS
+	4. bcm2835 Library 1.71 (Dependency)
     
 Output
 ---------------------------------
@@ -63,14 +63,14 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.4.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.5.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd ERM19264_UC1609_RPI-1.4
+cd ERM19264_UC1609_RPI-1.5
 sudo make
 ```
 
@@ -121,11 +121,20 @@ Features
 
 Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows for more flexible GPIO selection. When running Software SPI it may be necessary on very high frequency MCU's to change the UC1609_HIGHFREQ_DELAY define, It is a microsecond delay by default it is at 0.
 
+The SPI settings are in LCDSPIon function.
+Speed is currently at BCM2835_SPI_CLOCK_DIVIDER_64. 
+6.25MHz on RPI3. This can be adjusted in code or user can pass 
+the divider value in the "begin" method as a parameter. These values are
+defined by enum bcm2835SPIClockDivider. For full list see
+[link.](http://www.airspayce.com/mikem/bcm2835/group__constants.html#gaf2e0ca069b8caef24602a02e8a00884e)
+User can also adjust which SPI chip enable pin the use uing "begin" method parameter.
+
+
 *fonts*
 
-There are four standard scale-able ASCII fonts.
+There are 6 standard scale-able ASCII fonts.
 A print class is available to print out most passed data types.
-The fonts 1-4 are byte high(at text size 1) scale-able fonts, columns of padding added by SW.
+The fonts 1-6 are byte high(at text size 1) scale-able fonts, columns of padding added by SW.
 The example file TEXT_GRAPHICS shows how to use these. 
 
 Four standard fonts available : 
@@ -136,8 +145,10 @@ Four standard fonts available :
 | 2 | Thick   | 7x8 | no lowercase letters , ASCII  0x20 - 0x5A |
 | 3 | Seven segment | 4x8 | ASCII  0x20 - 0x7A |
 | 4 | Wide | 8x8 | no lowercase letters, ASCII 0x20 - 0x5A |
+| 5 | Tiny | 3x8 | ASCII  0x20 - 0x7E |
+| 6 | Homespun  | 7x8 | ASCII  0x20 - 0x7E |
 
-In addition to those 4 fonts, The ability to use glyph-fonts is also
+In addition to those 6 fonts, The ability to use glyph-fonts is also
 available. I have packaged four fonts with the library, these are not installed
 in the system but are in the include folder of examples. 
 The example file FONTS_GLYPH shows how to use these.

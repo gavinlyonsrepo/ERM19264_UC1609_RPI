@@ -111,7 +111,7 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	void LCDupdate(void);
 	void LCDclearBuffer(void);
 	void LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
-	void LCDbegin(uint8_t VbiasPot = UC1609_DEFAULT_GN_PM );
+	void LCDbegin(uint8_t VbiasPot = UC1609_DEFAULT_GN_PM, uint32_t _SPICLK_DIVIDER = 0, uint8_t _SPICE_Pin = 0  );
 	void LCDinit(void);
 	void LCDEnable(uint8_t on);
 	void LCDFillScreen(uint8_t pixel);
@@ -148,6 +148,9 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	int8_t _LCD_PAGE_NUM = (_LCD_HEIGHT/8);
 	int8_t _LCD_mode = 2; // 2 = HW SPI 3 = SW SPI, other numbers reserved for future use
 	bool _sleep = true; // False = awake/ON , true = sleep/OFF
+	
+	uint32_t _SPICLK_DIVIDER = 0; //Spi clock divider , bcm2835SPIClockDivider enum bcm2835
+	uint8_t _SPICE_PIN = 0; // which SPI_CE pin to use , 0 or 1
 };
 
 #endif

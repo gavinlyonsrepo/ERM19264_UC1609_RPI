@@ -18,13 +18,15 @@
 #include "FreeSerif12pt7b.h"
 #include "FreeSerif18pt7b.h"
 
-// LCD SETUP
-#define LCDcontrast 0x29 //Constrast 00 to FF , 0x49 is default.
-#define myLCDwidth  192
-#define myLCDheight 64
-// // GPIO pin number pick any you want
-#define RST 25
-#define CD 24
+const uint8_t RST = 25; // GPIO pin number pick any you want
+const uint8_t CD = 24; // GPIO pin number pick any you want 
+const uint8_t myLCDwidth  = 192;
+const uint8_t myLCDheight = 64;
+
+const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
+const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
+const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+
 //instantiate object
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight, RST, CD );
 
@@ -55,7 +57,7 @@ int main(int argc, char **argv)
 void setup() {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
+	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x33); // splash screen bars
 	bcm2835_delay(1500);
 }

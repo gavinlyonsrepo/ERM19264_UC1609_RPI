@@ -11,12 +11,15 @@
 #include "ERM19264_UC1609.hpp"
 
 // LCD Setup
-#define LCDcontrast 0x49 //Constrast 00 to FF , 0x80 is default. user adjust
-#define myLCDwidth  192
-#define myLCDheight 64
-// GPIO
-#define RST 25 // GPIO pin number pick any you want for reset
-#define CD 24 // GPIO pin number pick any you want for CD line
+const uint8_t RST = 25; // GPIO pin number pick any you want
+const uint8_t CD = 24; // GPIO pin number pick any you want 
+const uint8_t myLCDwidth  = 192;
+const uint8_t myLCDheight = 64;
+
+const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
+const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
+const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+
 // instantiate  an object for HW SPI
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD) ; 
 
@@ -52,7 +55,7 @@ int main(int argc, char **argv)
 void setup() {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
+	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x8F); //splash screen bars
 	myLCD.setTextWrap(true);
 	bcm2835_delay(2500);
@@ -67,7 +70,9 @@ void EndTest()
 
 void TestReset()
 {
-TestReset();
+	myLCD.LCDupdate();  // Write to the buffer
+	bcm2835_delay(DisplayDelay1);
+	myLCD.LCDclearBuffer();
 }
 
 void myTest()
@@ -232,7 +237,7 @@ void DisplayText(MultiBuffer* targetBuffer)
 	TestReset();
 	
 	// Test 12
-	myLCD.setFontNum(OLEDFontType_Default);
+	myLCD.setFontNum(UC1609Font_Default);
 	myLCD.setTextSize(1);
 	myLCD.setCursor(0, 0);
 	myLCD.print(47 , DEC);
@@ -248,9 +253,9 @@ void DisplayText(MultiBuffer* targetBuffer)
 	
 	// Test 13
 	char myString[9] = {'1', '3', ':', '2', '6', ':', '1', '8'};
-	myLCD.setFontNum(OLEDFontType_Tiny);
+	myLCD.setFontNum(UC1609Font_Tiny);
 	myLCD.drawText(0,0, myString, FOREGROUND, BACKGROUND,1);
-	myLCD.setFontNum(OLEDFontType_Wide);
+	myLCD.setFontNum(UC1609Font_Wide);
 	myLCD.drawText(0,32, myString, FOREGROUND, BACKGROUND,2);
 	TestReset();
 	

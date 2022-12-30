@@ -43,13 +43,17 @@ ERM19264_UC1609 :: ERM19264_UC1609(int16_t lcdwidth, int16_t lcdheight , int8_t 
 // Desc: begin Method initialise LCD
 // Sets pinmodes and SPI setup
 // Param1: VBiasPOT default = 0x49 , range 0x00 to 0xFE
-void ERM19264_UC1609::LCDbegin(uint8_t VbiasPOT)
+// Param2: spi_divider default = 64 ,see bcm2835SPIClockDivider enum , bcm2835
+// Param3: SPICE_Pin default = 0 , which SPI_CE pin to use , 0 or 1
+void ERM19264_UC1609::LCDbegin(uint8_t VbiasPOT, uint32_t spi_divider, uint8_t SPICE_Pin)
 {
 	bcm2835_gpio_fsel(_LCD_RST, BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(_LCD_CD, BCM2835_GPIO_FSEL_OUTP);
 
 	_VbiasPOT  = VbiasPOT;
-
+	_SPICLK_DIVIDER  = spi_divider;
+	_SPICE_PIN = SPICE_Pin;
+	
 	if(GetCommMode() == 3)
 	{
 		bcm2835_gpio_fsel( _LCD_CS, BCM2835_GPIO_FSEL_OUTP);
@@ -61,17 +65,29 @@ void ERM19264_UC1609::LCDbegin(uint8_t VbiasPOT)
 }
 
 // Desc: Start SPI operations. Forces RPi SPI0 pins P1-19 (MOSI), P1-21 (MISO),
-// P1-23 (CLK), P1-24 (CE0) and P1-26 (CE1)
+// P1-23 (CLK), P1-24 (CE0) or P1-26 (CE1)
 // to alternate function ALT0, which enables those pins for SPI interface.
 void ERM19264_UC1609::LCDSPIon(void)
 {
 	bcm2835_spi_begin();
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-	// CLOCK_DIVIDER_64 = 3.90625MHz on Rpi2, 6.250MHz on RPI3
-	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64);
-	bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+	
+	if (_SPICLK_DIVIDER > 0)
+		bcm2835_spi_setClockDivider(_SPICLK_DIVIDER);
+	else // default BCM2835_SPI_CLOCK_DIVIDER_64 3.90MHz Rpi2, 6.250MHz RPI3
+		bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64); 
+	
+	if (_SPICE_PIN == 0)
+	{
+		bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
+		bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+	}else if (_SPICE_PIN  == 1)
+	{
+		bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
+		bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, LOW);
+	}
+
 }
 
 // Desc: stop  Spi

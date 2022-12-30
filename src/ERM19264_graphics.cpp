@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include "ERM19264_UC1609.hpp"
 #include "ERM19264_graphics.hpp"
-#include "ERM19264_graphics_font.hpp"
+#include "ERM19264_font.hpp"
 
 
 ERM19264_graphics::ERM19264_graphics(int16_t w, int16_t h):
@@ -350,10 +350,10 @@ void ERM19264_graphics::drawChar(int16_t x, int16_t y, unsigned char c,
 			line = pFontThickptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Seven_Seg:
-			line = pFontSevenSegptr;[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontSevenSegptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Wide:
-			line = pFontWideptr;[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
+			line = pFontWideptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
 		break;
 		case UC1609Font_Tiny:
 			line =pFontTinyptr[(c - _CurrentFontoffset) * _CurrentFontWidth + i];
@@ -607,7 +607,7 @@ void ERM19264_graphics::setDrawBitmapAddr(bool mode) {
 // Param 5: background color
 // Notes for font 1- 6 only
 void ERM19264_graphics::drawText(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg, uint8_t size) {
-	if (_FontNumber >= UC1609Font_Bignum){return;}
+	
 	uint8_t cursor_x, cursor_y;
 	cursor_x = x, cursor_y = y;
 	

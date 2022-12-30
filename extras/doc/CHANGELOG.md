@@ -15,3 +15,9 @@
 	Simply replace font numbers  with the relevant enum text labels to get rid of warnings. 
 	* A new function added for initialising a multibuffer struct , LCDinitBufferStruct(),
 	backward compatible with old manual workflow. 
+
+* Version 1.5 Dec 2022
+	* Added Homespun + tiny fonts
+	* Added DrawText method
+	* Allowed User to pick SPI bus baudrate and Chip enable pin in "begin" method.
+	* Changed UC1609_POWER_CONTROL from 0x2F to 0x28(to default charge pump current)

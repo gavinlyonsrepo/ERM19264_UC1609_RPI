@@ -6,23 +6,26 @@
 // The user can also divide vertically and create as many buffers as they want.
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
-// Measured frame rate 214 fps at 64 clock divider on Rpi 3
-
+// Measured:: frame rate 214 fps at 64 clock divider on Rpi 3 v1.5 2022
+// Measured:: frame rate 350 fps at 16 clock divider on Rpi 3 v1.5 2022
 
 #include <bcm2835.h>
 #include <time.h>
 #include <stdio.h>
 #include "ERM19264_UC1609.hpp"
 
-// LCD setup
-#define LCDcontrast 0x25
-#define myLCDwidth  192
-#define myLCDheight 64
-// GPIO
-#define RES 25 // GPIO pin number pick any you want
-#define DC 24 // GPIO pin number pick any you want
+// LCD Setup
+const uint8_t RST = 25; // GPIO pin number pick any you want
+const uint8_t CD = 24; // GPIO pin number pick any you want 
+const uint8_t myLCDwidth  = 192;
+const uint8_t myLCDheight = 64;
+
+const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
+const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
+const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+
  // instantiate  an object
-ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RES, DC) ;
+ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD) ;
 
 // vars for the test
 uint16_t count  = 0;
@@ -40,10 +43,7 @@ static uint64_t counter( void );
 // ======================= Main ===================
 int main(int argc, char **argv)
 {
-	if(!bcm2835_init())
-	{
-		return -1;
-	}
+	if(!bcm2835_init()){return -1;}
 
 	setup();
 	myTest();
@@ -67,7 +67,7 @@ void setup()
 {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
+	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x01);
 	bcm2835_delay(2000);
 }

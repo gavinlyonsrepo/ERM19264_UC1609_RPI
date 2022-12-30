@@ -705,5 +705,5 @@ const unsigned char * pFontDefaultptr = ERM_Font_Default;
 const unsigned char * pFontThickptr = ERM_Font_Thick;
 const unsigned char * pFontSevenSegptr = ERM_Font_SevenSeg;
 const unsigned char * pFontWideptr = ERM_Font_Wide;
-const unsigned char * pFontTinyptr = ERM_Font_Tiny
+const unsigned char * pFontTinyptr = ERM_Font_Tiny;
 const unsigned char * pFontHomeSpunptr = ERM_Font_Homespun;

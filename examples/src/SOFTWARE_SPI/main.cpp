@@ -4,7 +4,8 @@
 // Test file for ERM19264_UC1609 library, showing use of Software SPI
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
-// Speed test results measured frame rate 66 fps, 1:49 min to 10000
+// Speed test results: 
+// measured frame rate 66 fps, 1:49 min to 10000, v1.4 , 2022 , rpi3
 //
 
 #include <bcm2835.h>
@@ -12,16 +13,18 @@
 #include <stdio.h>
 #include "ERM19264_UC1609.hpp"
 
-// LCD
-#define LCDcontrast 0x50 //Constrast 00 to FF , 0x50 is default. user adjust
-#define myLCDwidth  192
-#define myLCDheight 64
+// LCD SETUP
+const uint8_t LCDcontrast = 0x50; //Constrast 00 to FF , 0x50 is default. user adjust
+const uint8_t myLCDwidth  = 192;
+const uint8_t myLCDheight = 64;
+
 // GPIO pin number pick any you want
-#define RST 25
-#define CD 24
-#define DIN 5
-#define SCLK 6
-#define CS 8
+const uint8_t RST = 25;
+const uint8_t CD = 24;
+const uint8_t DIN = 5;
+const uint8_t SCLK = 6;
+const uint8_t CS = 8;
+
 // software SPI constructor
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD, CS, SCLK,DIN) ;
 
@@ -73,7 +76,7 @@ void myLoop() {
 	myLCD.setTextSize(1);
 	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2];
 
-MultiBuffer left_side;
+	MultiBuffer left_side;
 	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
 	myLCD.LCDinitBufferStruct(&left_side, screenBuffer, myLCDwidth/2, myLCDheight, 0, 0);
 	

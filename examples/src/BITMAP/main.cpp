@@ -7,17 +7,19 @@
 
 
 #include <bcm2835.h>
-
 #include <time.h>
 #include <stdio.h>
-#include "ERM19264_UC1609.h"
-//LCD
-#define LCDcontrast 0x49 //Constrast 00 to FF , 0x49 is default. user adjust
-#define myLCDwidth  192
-#define myLCDheight 64
-// GPIO 
-#define RST 25 // GPIO pin number pick any you want
-#define CD 24 // GPIO pin number pick any you want 
+#include "ERM19264_UC1609.hpp"
+
+const uint8_t RST = 25; // GPIO pin number pick any you want
+const uint8_t CD = 24; // GPIO pin number pick any you want 
+const uint8_t myLCDwidth  = 192;
+const uint8_t myLCDheight = 64;
+
+const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
+const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
+const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+
 // instantiate  an object 
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight, RST, CD) ;
 
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-//192x64px bitmap, SW used to make https://javl.github.io/image2cpp/ vertical addressing
+//192x64px bitmap,'UC1609' SW used to make https://javl.github.io/image2cpp/ vertical addressing
 uint8_t fullScreenBuffer[1537] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x80, 0xc0, 0xe0, 0x60, 0x30, 0x30, 0x38, 0x18, 0x18, 0x18, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
@@ -167,7 +169,7 @@ void setup()
 {
 	printf("LCD Begin\r\n");
 	bcm2835_delay(50);
-	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
+	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0xFF); // Clears screen
 	bcm2835_delay(2000);
 }
