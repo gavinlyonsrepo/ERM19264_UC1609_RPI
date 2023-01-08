@@ -137,7 +137,7 @@ A print class is available to print out most passed data types.
 The fonts 1-6 are byte high(at text size 1) scale-able fonts, columns of padding added by SW.
 The example file TEXT_GRAPHICS shows how to use these. 
 
-Four standard fonts available : 
+Six standard fonts available : 
 
 | Font num | Font name | Font size xbyy |  Note |
 | ------ | ------ | ------ | ------ |  
