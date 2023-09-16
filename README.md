@@ -12,7 +12,7 @@
   * [Software](#software)
 	* [SPI](#spi)
 	* [Fonts](#fonts)
-	* [Bitmaps(#bitmaps)
+	* [Bitmaps](#bitmaps)
 	* [User Adjustments](#user-adjustments)
   * [Notes and Issues](#notes-and-issues)
 
