@@ -1,17 +1,23 @@
 ![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609/blob/main/extras/image/color.jpg)
 
-Table of contents
----------------------------
+# ERM19264_UC1609_RPI
+
+## Table of contents
 
   * [Overview](#overview)
   * [Output](#output)
   * [Installation](#installation)
   * [Test](#test)
   * [Hardware](#hardware)
-  * [Features](#features)
+  * [Software](#software)
+	* [SPI](#spi)
+	* [Fonts](#fonts)
+	* [Bitmaps(#bitmaps)
+	* [User Adjustments](#user-adjustments)
+  * [Notes and Issues](#notes-and-issues)
 
-Overview
---------------------
+## Overview
+
 * Name : ERM19264_UC1609_RPI
 * Title : Library for ERM19264-5 v3 LCD (UC1609C controller)
 * Description :
@@ -35,8 +41,7 @@ Overview
 	3. Raspbian 10 buster  OS
 	4. bcm2835 Library 1.71 (Dependency)
     
-Output
----------------------------------
+## Output
 
 Output Screenshots, From left to right top to bottom.
 
@@ -49,8 +54,8 @@ Output Screenshots, From left to right top to bottom.
 ![op](https://github.com/gavinlyonsrepo/ERM19264_UC1609/blob/main/extras/image/output.jpg)
 ![op](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/font.jpg)
 
-Installation
-------------------------------
+## Installation
+
 
 1. Make sure SPI bus is enabled on your raspberry PI
 
@@ -74,8 +79,7 @@ cd ERM19264_UC1609_RPI-1.5
 sudo make
 ```
 
-Test
----------------------------------------
+## Test
 
 1. Next step is to test LCD and installed library with an example.
 Wire up your LCD. Next enter the examples folder and run the makefile in THAT folder, 
@@ -94,8 +98,7 @@ sudo bin/test
 To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY. Comment out the rest and repeat step 1.
 
 
-Hardware
-----------------------------
+## Hardware
 
 9 pins , Vcc and GND, anode and cathode for the backlight LED and an SPI interface.
 The backlight control is left up to user , connect to 3.3V thru a resistor.
@@ -114,10 +117,9 @@ It was always run it at 3.3V during testing.
 
 ![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/wiring.png)
 
-Features
--------------------------
+## Software
 
-*SPI*
+### SPI
 
 Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows for more flexible GPIO selection. When running Software SPI it may be necessary on very high frequency MCU's to change the UC1609_HIGHFREQ_DELAY define, It is a microsecond delay by default it is at 0.
 
@@ -130,7 +132,7 @@ defined by enum bcm2835SPIClockDivider. For full list see
 User can also adjust which SPI chip enable pin the use uing "begin" method parameter.
 
 
-*fonts*
+### Fonts
 
 There are 6 standard scale-able ASCII fonts.
 A print class is available to print out most passed data types.
@@ -164,7 +166,7 @@ They cannot currently use the print class, also cannot be inverted.
 Inverting only works with the standard fonts because the characters are a uniform size. It's not a sensible thing to do with proportionally-spaced fonts with glyphs of varying sizes and that may overlap.  
 
 
-*bitmaps*
+### Bitmaps
 
 There is a few different ways of displaying bitmaps, 
 
@@ -178,13 +180,12 @@ There is a few different ways of displaying bitmaps,
 
 See the bitmap example file for more details on each method. Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) , Bitmaps should be defined as const  buffers non-const, for methods 3 buffer can be initialised with bitmap data.
 
-*User adjustments*
+### User Adjustments
 
 When the user calls LCDbegin() to start LCD they can specify a contrast setting from 0x00 to 0xFF.
 Datasheet says 0x49 is default. (VbiasPOT). Lower contrast works better on the blue version.
 It is also possible for user to change LCD bias ,  Temperature coefficient, frame rate and power control but this must be done by changing defines in header file. Choose lower frame rate for lower power, and choose higher frame rate to improve LCD contrast and minimize flicker. See Data sheet for range of values
 here. Defaults where found to be fine during all testing of this library.
-
 
 | Parameter | default Values |  Define | Register |
 | ------ | ------ |  ------ | ------ |
@@ -194,3 +195,10 @@ here. Defaults where found to be fine during all testing of this library.
 | Power control | 1.4mA + internal V LCD |  PC_SET | PC 2:0 |
 | V bias Bot(contrast) | 0x49h default|  Set by user with LCDbegin | PM 7:0 |
 
+## Notes and Issues
+
+Some users(Of the arduino  library) have reported the LCD not initialising correctly with this software.
+It was found that by adjusting the UC1609_ADDRESS_SET setting from 0x02 to 0x01.
+it resolved problem.  This setting is on line 41 of ERM19264_UC1609.h file.
+See [ github issue 4](https://github.com/gavinlyonsrepo/ERM19264_UC1609/issues/4) for details. I suspect the root cause is different versions of product on market.
+In a future version I will allow user to adjust this setting in "LCDbegin" method parameters.
