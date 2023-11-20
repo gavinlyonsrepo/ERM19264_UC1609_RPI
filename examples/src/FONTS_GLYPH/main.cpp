@@ -26,6 +26,7 @@ const uint8_t myLCDheight = 64;
 const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
 const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
 const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
 //instantiate object
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight, RST, CD );
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 void setup() {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
+	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x33); // splash screen bars
 	bcm2835_delay(1500);
 }
@@ -72,17 +73,9 @@ void EndTest()
 void myTest() {
 
 	// define a buffer to cover whole screen
-	uint8_t  screenBuffer[myLCDwidth * (myLCDheight/8)];
-
-	// Declare a buffer struct
-	MultiBuffer mybuffer;
-
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&mybuffer, screenBuffer, myLCDwidth, myLCDheight, 0, 0);
-
-	// Assign address of struct to be the active buffer pointer
-	myLCD.ActiveBuffer = &mybuffer;
-	myLCD.LCDclearBuffer();   // Clear active buffer
+	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
+	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	myLCD.LCDclearBuffer();   // Clear buffer
 
 	// Test 1 Font FreeSans12pt7b
 	const char *txt = "FreeSans               12pt7b";
@@ -137,8 +130,8 @@ void myTest() {
 
 void testReset()
 {
-	myLCD.LCDupdate();  //write to active buffer
+	myLCD.LCDupdate(); //write to buffer
 	MY_TEST_DELAY2;
-	myLCD.LCDclearBuffer();   // Clear active buffer
+	myLCD.LCDclearBuffer(); // Clear buffer
 }
 // ============== EOF =========

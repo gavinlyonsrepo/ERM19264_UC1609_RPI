@@ -1,9 +1,7 @@
 
 // Example file name : main.cpp
 // Description:
-// Test file for ERM19264_UC1609 library, showing use of mulitple buffers.  
-// In this case: two, divided horizontally 
-// The user can also divide vertically and create as many buffers as they want.
+// Test file for ERM19264_UC1609 library, showing FPS  
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
 // Measured:: frame rate 214 fps at 64 clock divider on Rpi 3 v1.5 2022
@@ -23,6 +21,7 @@ const uint8_t myLCDheight = 64;
 const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
 const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
 const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
  // instantiate  an object
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD) ;
@@ -36,8 +35,7 @@ uint64_t  previousCounter =0;
 void setup(void);
 void myTest(void);
 void EndTest(void);
-void display_Left(MultiBuffer* , long , int );
-void display_Right(MultiBuffer* );
+void displayData(long , int );
 static uint64_t counter( void );
 
 // ======================= Main ===================
@@ -67,7 +65,7 @@ void setup()
 {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
+	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x01);
 	bcm2835_delay(2000);
 }
@@ -77,23 +75,15 @@ void myTest() {
 
 	myLCD.setTextColor(FOREGROUND);
 	myLCD.setTextSize(1);
-	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2];
+	// define a buffer to cover whole screen
+	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
+	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	myLCD.LCDclearBuffer();  // Clear buffer
 
-	MultiBuffer left_side;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&left_side, screenBuffer, myLCDwidth/2, myLCDheight, 0, 0);
-	
-	MultiBuffer right_side;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&right_side, screenBuffer, myLCDwidth/2, myLCDheight, myLCDwidth/2, 0);
-	
 	while (count < 10000)
 	{
 		static long framerate = 0;
-		display_Left(&left_side, framerate, count);
-
-		display_Right(&right_side);
-
+		displayData(framerate, count);
 		framerate++;
 		count++;
 		bcm2835_delay(1);
@@ -102,13 +92,12 @@ void myTest() {
 }
 
 
-// Function to display left hand side buffer
-void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
+// Function to display data
+void displayData(long currentFramerate, int count)
 {
-	myLCD.ActiveBuffer = targetbuffer; // set target buffer object
 	myLCD.LCDclearBuffer();
 	myLCD.setCursor(0, 0);
-	myLCD.print("LHS Buffer");
+	myLCD.print("LHS Screen");
 
 	myLCD.setCursor(0, 10);
 	myLCD.print("768 bytes");
@@ -135,25 +124,20 @@ void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" fps");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.5");
+	myLCD.print("V 1.7");
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
+	
+	myLCD.setCursor(97, 0);
+	myLCD.print("RHS Screen");
+
+	myLCD.fillRect(97, 10, 20, 20, colour);
+	myLCD.fillCircle(137, 20, 10, FOREGROUND);
+	myLCD.fillTriangle(157, 30, 167, 10, 177, 30, !colour);
+	myLCD.drawRoundRect(107, 40, 60, 20, 10, FOREGROUND);
+	
 	myLCD.LCDupdate();
 }
 
-// Function to display right hand side buffer
-void display_Right(MultiBuffer* targetbuffer)
-{
-	myLCD.ActiveBuffer = targetbuffer; // set target buffer object
-	myLCD.LCDclearBuffer();
-	myLCD.setCursor(0, 0);
-	myLCD.print("RHS buffer");
-
-	myLCD.fillRect(0, 10, 20, 20, colour);
-	myLCD.fillCircle(40, 20, 10, FOREGROUND);
-	myLCD.fillTriangle(60, 30, 70, 10, 80, 30, !colour);
-	myLCD.drawRoundRect(10, 40, 60, 20, 10, FOREGROUND);
-	myLCD.LCDupdate();
-}
 
 //This returns nano-seconds as a 64-bit unsigned number, monotonically increasing,
 //probably since system boot.

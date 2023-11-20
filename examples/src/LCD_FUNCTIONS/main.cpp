@@ -27,11 +27,10 @@ const uint8_t myLCDheight = 64;
 const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
 const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
 const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
 ERM19264_UC1609 mylcd(myLCDwidth ,myLCDheight , RST, CD ) ;  
 
-// Define a full screen buffer and struct
-uint8_t  screenBuffer[myLCDwidth * (myLCDheight/8)];
 
 // =============== Function prototype ================
 void setup(void);
@@ -56,7 +55,7 @@ void setup()
 {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	mylcd.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN);  // initialize the LCD
+	mylcd.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN);  // initialize the LCD
 	mylcd.LCDFillScreen(0x11); // Clears screen
 	bcm2835_delay(1500);
 }
@@ -70,13 +69,10 @@ void EndTest()
 
 void myTest()
 {
-	
-	MultiBuffer whole_screen;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	mylcd.LCDinitBufferStruct(&whole_screen, screenBuffer, myLCDwidth, myLCDheight, 0, 0);
-	
-	mylcd.ActiveBuffer =  &whole_screen; // set buffer object
-	mylcd.LCDclearBuffer(); // clear the buffer
+	// define a buffer to cover whole screen
+	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
+	mylcd.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	mylcd.LCDclearBuffer();   // Clear buffer
 
 	// Set text parameters
 	mylcd.setTextColor(FOREGROUND);
@@ -104,7 +100,6 @@ void myTest()
 	bcm2835_delay(4000);
 	mylcd.LCDinvert(0);
 
-
 	// Test3 LCD rotate
 	mylcd.LCDclearBuffer();
 	mylcd.setCursor(20, 30);
@@ -123,7 +118,6 @@ void myTest()
 	mylcd.LCDrotate(UC1609_ROTATION_NORMAL);
 	mylcd.LCDupdate();
 	bcm2835_delay(5000);
-
 
 	// Test4 LCD scroll
 	mylcd.LCDclearBuffer();

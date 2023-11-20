@@ -11,7 +11,7 @@ SRC=src/HELLO_WORLD
 #SRC=src/BITMAP
 #SRC=src/FONTS_GLYPH
 #SRC=src/LCD_FUNCTIONS
-#SRC=src/MULTI_BUFFER
+#SRC=src/FRAMERATE_PER_SEC
 #SRC=src/TEXT_GRAPHICS
 #SRC=src/SOFTWARE_SPI
 # ************************************************

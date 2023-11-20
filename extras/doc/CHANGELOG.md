@@ -21,3 +21,8 @@
 	* Added DrawText method
 	* Allowed User to pick SPI bus baudrate and Chip enable pin in "begin" method.
 	* Changed UC1609_POWER_CONTROL from 0x2F to 0x28(to default charge pump current)
+
+* Version 1.7.0 Nov 2023
+	* Added support for string objects in the print class. 
+	* Changed multi-buffer mode to a single buffer mode.
+	* Allowed user to adjust Ram address control setting in Begin methods arguments.

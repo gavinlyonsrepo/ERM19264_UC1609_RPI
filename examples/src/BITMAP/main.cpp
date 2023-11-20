@@ -18,7 +18,8 @@ const uint8_t myLCDheight = 64;
 
 const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
 const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
-const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x49 is default.
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
 // instantiate  an object 
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight, RST, CD) ;
@@ -169,8 +170,8 @@ void setup()
 {
 	printf("LCD Begin\r\n");
 	bcm2835_delay(50);
-	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
-	myLCD.LCDFillScreen(0xFF); // Clears screen
+	myLCD.LCDbegin(RAMaddressCtrl , LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
+	myLCD.LCDFillScreen(0xFF); // Clears screen with 1's (i.e fills it)
 	bcm2835_delay(2000);
 }
 
@@ -178,7 +179,7 @@ void myLoop()
 {
 	Test1(); // Method (1) LCD bitmap method
 	Test2(); // Method (2) LCD buffer method
-	Test3(); // Method (3) LCD update multibuffer init method
+	Test3(); // Method (3) LCD update init method
 	Test4(); // Method (4) Drawbitmap to buffer method, vertical addressing
 	Test5(); // Method (5) Drawbitmap to buffer method, horizontal addressing
 }
@@ -212,14 +213,7 @@ void Test2(void)
 
 void Test3(void)
 {
-	// Method (3) multibuffer mode sets bitmap to buffer var of struct
-	// then sets struct to activebuffer and updates screen buffer 
-	MultiBuffer Whole_screen;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&Whole_screen, fullScreenBuffer, myLCDwidth, myLCDheight, 0, 0);
-	
-	myLCD.ActiveBuffer = &Whole_screen;
-	
+	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
 	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 	myLCD.LCDFillScreen(0x00); 
@@ -227,11 +221,8 @@ void Test3(void)
 
 void Test4(void)
 {
-	MultiBuffer MyStruct;
-	myLCD.LCDinitBufferStruct(&MyStruct, fullScreenBuffer, 192, 64, 0, 0);  
-	myLCD.ActiveBuffer = &MyStruct;
-	myLCD.LCDclearBuffer();   // Clear active buffer
-
+	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
+	myLCD.LCDclearBuffer();   // Clear buffer
 	myLCD.setDrawBitmapAddr(true); // for Bitmap Data Vertical  addressed
 	myLCD.drawBitmap(0,   5, SignalIcon, 16, 8, FOREGROUND, BACKGROUND);
 	myLCD.drawBitmap(150, 5, BatIcon, 16, 8 , FOREGROUND, BACKGROUND);
@@ -242,9 +233,7 @@ void Test4(void)
 
 void Test5(void)
 {
-	MultiBuffer MyStruct;
-	myLCD.LCDinitBufferStruct(&MyStruct, fullScreenBuffer, 192, 64, 0, 0);  
-	myLCD.ActiveBuffer = &MyStruct;
+	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
 	myLCD.LCDclearBuffer();   // Clear active buffer
 
 	myLCD.setDrawBitmapAddr(false); // for Bitmap Data Horziontal addressed

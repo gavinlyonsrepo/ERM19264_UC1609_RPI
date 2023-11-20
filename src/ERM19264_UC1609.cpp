@@ -45,12 +45,14 @@ ERM19264_UC1609 :: ERM19264_UC1609(int16_t lcdwidth, int16_t lcdheight , int8_t 
 // Param1: VBiasPOT default = 0x49 , range 0x00 to 0xFE
 // Param2: spi_divider default = 64 ,see bcm2835SPIClockDivider enum , bcm2835
 // Param3: SPICE_Pin default = 0 , which SPI_CE pin to use , 0 or 1
-void ERM19264_UC1609::LCDbegin(uint8_t VbiasPOT, uint32_t spi_divider, uint8_t SPICE_Pin)
+void ERM19264_UC1609::LCDbegin(uint8_t AddressSet ,uint8_t VbiasPOT, uint32_t spi_divider, uint8_t SPICE_Pin)
 {
 	bcm2835_gpio_fsel(_LCD_RST, BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(_LCD_CD, BCM2835_GPIO_FSEL_OUTP);
 
 	_VbiasPOT  = VbiasPOT;
+	if (AddressSet > 7 ) AddressSet = 0x02;
+	_AddressCtrl =  AddressSet;
 	_SPICLK_DIVIDER  = spi_divider;
 	_SPICE_PIN = SPICE_Pin;
 	
@@ -133,7 +135,7 @@ void ERM19264_UC1609::LCDinit()
 	LCDReset();
 
 	send_command(UC1609_TEMP_COMP_REG, UC1609_TEMP_COMP_SET);
-	send_command(UC1609_ADDRESS_CONTROL, UC1609_ADDRESS_SET);
+	send_command(UC1609_ADDRESS_CONTROL, _AddressCtrl); //  changed by user
 	send_command(UC1609_FRAMERATE_REG, UC1609_FRAMERATE_SET);
 	send_command(UC1609_BIAS_RATIO, UC1609_BIAS_RATIO_SET);
 	send_command(UC1609_POWER_CONTROL,  UC1609_PC_SET);
@@ -411,14 +413,17 @@ void ERM19264_UC1609::send_data(uint8_t byte)
 //Desc: updates the buffer i.e. writes it to the screen
 void ERM19264_UC1609::LCDupdate()
 {
-	LCDBuffer( this->ActiveBuffer->xoffset, this->ActiveBuffer->yoffset, this->ActiveBuffer->width, this->ActiveBuffer->height, (uint8_t*) this->ActiveBuffer->screenbitmap);
+	uint8_t x = 0; 
+	uint8_t y = 0; 
+	uint8_t w = this->_LCD_WIDTH; 
+	uint8_t h = this->_LCD_HEIGHT;
+	LCDBuffer( x,  y,  w,  h, (uint8_t*) this->LCDbufferScreen);
 }
 
 //Desc: clears the buffer i.e. does NOT write to the screen
 void ERM19264_UC1609::LCDclearBuffer()
 {
-	 memset( this->ActiveBuffer->screenbitmap, 0x00, (this->ActiveBuffer->width * (this->ActiveBuffer->height/ 8))  );
-
+	memset( this->LCDbufferScreen, 0x00, (this->_LCD_WIDTH * (this->_LCD_HEIGHT /8))  ); 
 }
 
 //Desc: Draw a bitmap to the screen
@@ -468,33 +473,17 @@ void ERM19264_UC1609::LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint
 void ERM19264_UC1609::drawPixel(int16_t x, int16_t y, uint8_t colour)
 {
 
-	if ((x < 0) || (x >= this->ActiveBuffer->width) || (y < 0) || (y >= this->ActiveBuffer->height)) {
-		return;
-	}
-	uint16_t offset = (this->ActiveBuffer->width * (y/8)) + x;
+	if ((x < 0) || (x >= this->_LCD_WIDTH) || (y < 0) || (y >= this->_LCD_HEIGHT)) {
+	return;
+  }
+	uint16_t tc = (_LCD_WIDTH * (y /8)) + x; 
 	switch (colour)
 	{
-		case FOREGROUND: this->ActiveBuffer->screenbitmap[offset] |= (1 << (y & 7)); break;
-		case BACKGROUND: this->ActiveBuffer->screenbitmap[offset] &= ~(1 << (y & 7)); break;
-		case INVERSE: this->ActiveBuffer->screenbitmap[offset] ^= (1 << (y & 7)); break;
+		case FOREGROUND:  this->LCDbufferScreen[tc] |= (1 << (y & 7)); break;
+		case BACKGROUND:  this->LCDbufferScreen[tc] &= ~(1 << (y & 7)); break;
+		case INVERSE: this->LCDbufferScreen[tc] ^= (1 << (y & 7)); break;
 	}
-	return;
 }
 
-// Func Desc: init the Multibuffer struct
-// Param 1 Pointer to a struct
-// Param 2 Pointer to buffer array data(arrays decay to  pointers)
-// Param 3. width of buffer
-// Param 4. height of buffer
-// Param 5. x offset of buffer
-// Param 6. y offset of buffer
-void ERM19264_UC1609::LCDinitBufferStruct(MultiBuffer* mystruct, uint8_t* mybuffer, uint8_t w,  uint8_t h, int16_t  x, int16_t y)
-{
-   mystruct->screenbitmap = mybuffer; // point it to the buffer
-   mystruct->width = w ;
-   mystruct->height = h;
-   mystruct->xoffset = x;
-   mystruct->yoffset = y; 
-}
 
 //****************  EOF ******************************8

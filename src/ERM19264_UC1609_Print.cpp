@@ -142,6 +142,16 @@ size_t Print::println(double num, int digits)
   return n;
 }
 
+size_t Print::print(const std::string &s) {
+    return write(s.c_str(), s.length());
+}
+
+size_t Print::println(const std::string &s) {
+    size_t n = print(s);
+    n += println();
+    return n;
+}
+
 // Private Methods ////////
 
 size_t Print::printNumber(unsigned long n, uint8_t base)

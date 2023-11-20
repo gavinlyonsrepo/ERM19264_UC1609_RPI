@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <stdio.h> // for size_t
 #include <string.h>
+#include <string>
 
 #define DEC 10
 #define HEX 16
@@ -65,7 +66,8 @@ class Print
     size_t print(long, int = DEC);
     size_t print(unsigned long, int = DEC);
     size_t print(double, int = 2);
-
+    size_t print(const std::string &);
+    
     size_t println(const char[]);
     size_t println(char);
     size_t println(int, int = DEC);
@@ -74,6 +76,7 @@ class Print
     size_t println(unsigned long, int = DEC);
     size_t println(double, int = 2);
     size_t println(void);
+    size_t println(const std::string &s);
 
 };
 

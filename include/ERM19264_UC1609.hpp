@@ -86,14 +86,6 @@
 #define  UC1609_SDA_SetLow bcm2835_gpio_write(_LCD_DIN, LOW)
 
 
-struct MultiBuffer
-{
-  uint8_t* screenbitmap; // pointer to buffer
-  uint8_t width=0;  // bitmap x size
-  uint8_t height=0 ; // bitmap y size
-  int16_t xoffset = 0; // x offset
-  int16_t yoffset = 0; // y offset
-};
 
 //class
 class ERM19264_UC1609 : public ERM19264_graphics {
@@ -105,13 +97,13 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 
 	~ERM19264_UC1609(){};
 
-   MultiBuffer* ActiveBuffer= NULL;
+	uint8_t *LCDbufferScreen= nullptr;
 
 	virtual void drawPixel(int16_t x, int16_t y, uint8_t colour) override;
 	void LCDupdate(void);
 	void LCDclearBuffer(void);
 	void LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
-	void LCDbegin(uint8_t VbiasPot = UC1609_DEFAULT_GN_PM, uint32_t _SPICLK_DIVIDER = 0, uint8_t _SPICE_Pin = 0  );
+	void LCDbegin(uint8_t AddressSet = UC1609_ADDRESS_SET, uint8_t VbiasPot = UC1609_DEFAULT_GN_PM, uint32_t _SPICLK_DIVIDER = 0, uint8_t _SPICE_Pin = 0  );
 	void LCDinit(void);
 	void LCDEnable(uint8_t on);
 	void LCDFillScreen(uint8_t pixel);
@@ -126,8 +118,6 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	void LCDSPIon(void);
 	void LCDSPIoff(void);
 	bool LCDIssleeping(void);
-	void LCDinitBufferStruct(MultiBuffer *p, uint8_t* mybuffer, 
-								uint8_t w, uint8_t h, int16_t x, int16_t y); 
 
   private:
 
@@ -143,9 +133,13 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	int8_t _LCD_DIN;  // Software SPI only
 
 	uint8_t _VbiasPOT; // Contrast default 0x49, range 00-FE
-	int16_t _LCD_WIDTH =192;
-	int16_t _LCD_HEIGHT=64;
+	uint8_t _AddressCtrl; // Set AC[2:0] Program regs, RAM address control. range 0-7
+	
+	// Display Size
+	int16_t _LCD_WIDTH = 192;
+	int16_t _LCD_HEIGHT = 64;
 	int8_t _LCD_PAGE_NUM = (_LCD_HEIGHT/8);
+	
 	int8_t _LCD_mode = 2; // 2 = HW SPI 3 = SW SPI, other numbers reserved for future use
 	bool _sleep = true; // False = awake/ON , true = sleep/OFF
 	

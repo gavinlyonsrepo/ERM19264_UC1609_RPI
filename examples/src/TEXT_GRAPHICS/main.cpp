@@ -19,6 +19,7 @@ const uint8_t myLCDheight = 64;
 const uint32_t SPICLK_FREQ = 64; // Spi clock divider, see bcm2835SPIClockDivider enum bcm2835
 const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
 const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
 // instantiate  an object for HW SPI
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD) ; 
@@ -31,8 +32,8 @@ ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD) ;
 // =============== Function prototype ================
 void setup(void);
 void myTest(void);
-void DisplayText(MultiBuffer* );
-void DisplayGraphics(MultiBuffer* );
+void DisplayText();
+void DisplayGraphics();
 void EndTest(void);
 void TestReset(void);
 
@@ -55,7 +56,7 @@ int main(int argc, char **argv)
 void setup() {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
+	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
 	myLCD.LCDFillScreen(0x8F); //splash screen bars
 	myLCD.setTextWrap(true);
 	bcm2835_delay(2500);
@@ -78,15 +79,14 @@ void TestReset()
 void myTest()
 {
 
-	// Define a full screen buffer
-	uint8_t  textBuffer[(myLCDwidth * (myLCDheight / 8)) + 1];
-	MultiBuffer window;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&window, textBuffer, myLCDwidth, myLCDheight, 0, 0);
+	// define a buffer to cover whole screen 
+	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
+	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	myLCD.LCDclearBuffer();   // Clear buffer 
 	
 	// Call a function to display text
-	DisplayText(&window);
-	DisplayGraphics(&window);
+	DisplayText();
+	DisplayGraphics();
 }
 
 // A series of tests to display the text mode
@@ -101,12 +101,12 @@ void myTest()
 // Test 9 wide font (NO LOWERCASE)
 // Test 10 tiny font 5
 // Test 11 Homespun font 6
-// Test 12 print function
+// Test 12 print class
 // Test 13 drawtext
-void DisplayText(MultiBuffer* targetBuffer)
+// Test 14 string object method using print class
+void DisplayText()
 {
 
-	myLCD.ActiveBuffer =  targetBuffer;
 	myLCD.LCDclearBuffer(); // Clear the buffer
 	
 	// Test 1
@@ -259,22 +259,27 @@ void DisplayText(MultiBuffer* targetBuffer)
 	myLCD.drawText(0,32, myString, FOREGROUND, BACKGROUND,2);
 	TestReset();
 	
+	// Test 14 string method string object method using print
+	std::string timeInfo = "12:45";
+	myLCD.setCursor(0, 0);
+	myLCD.print(timeInfo);
+	TestReset();
+	
 } // end DisplayText
 
 // Function to display Graphics.
-void  DisplayGraphics(MultiBuffer* targetBuffer)
+void  DisplayGraphics()
 {
-  //Q1 ||  Q2
-  //---------
-  //Q3 ||  Q4
-  //
-  bool colour = 1;
-  uint8_t count = 0;
-  myLCD.ActiveBuffer =  targetBuffer;   // Set the buffer struct object
-  myLCD.LCDclearBuffer(); // Clear the buffer
-  while (count < 15)
-  {
-	colour = !colour;
+//Q1 ||  Q2
+//---------
+//Q3 ||  Q4
+//
+bool colour = 1;
+uint8_t count = 0;
+myLCD.LCDclearBuffer(); // Clear the buffer
+while (count < 15)
+{
+colour = !colour;
 
 	// Draw the X
 	myLCD.drawLine(96,  0, 96, 64, FOREGROUND);
@@ -302,7 +307,7 @@ void  DisplayGraphics(MultiBuffer* targetBuffer)
 	}
 	myLCD.LCDclearBuffer();
 	count++;
-  }
+}
 } // end Display graphics
 
 

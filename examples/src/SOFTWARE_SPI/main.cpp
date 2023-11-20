@@ -5,7 +5,7 @@
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
 // Speed test results: 
-// measured frame rate 66 fps, 1:49 min to 10000, v1.4 , 2022 , rpi3
+// measured frame rate = 66 fps, 1:49 min to 10000, v1.4 , 2022 , rpi3
 //
 
 #include <bcm2835.h>
@@ -15,6 +15,7 @@
 
 // LCD SETUP
 const uint8_t LCDcontrast = 0x50; //Constrast 00 to FF , 0x50 is default. user adjust
+const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 const uint8_t myLCDwidth  = 192;
 const uint8_t myLCDheight = 64;
 
@@ -37,8 +38,7 @@ uint64_t  previousCounter =0;
 void setup(void);
 void myLoop(void);
 void EndTest(void);
-void display_Left(MultiBuffer* , long , int );
-void display_Right(MultiBuffer* );
+void displayData(long , int );
 static uint64_t counter( void );
 
 // ======================= Main ===================
@@ -58,7 +58,7 @@ void setup()
 {
 	bcm2835_delay(50);
 	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(LCDcontrast); // initialize the LCD
+	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast); // initialize the LCD
 	myLCD.LCDFillScreen(0x77); // Splash screen bars
 	bcm2835_delay(2000);
 }
@@ -74,22 +74,16 @@ void myLoop() {
 
 	myLCD.setTextColor(FOREGROUND);
 	myLCD.setTextSize(1);
-	uint8_t  screenBuffer[(myLCDwidth * (myLCDheight / 8)) / 2];
 
-	MultiBuffer left_side;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&left_side, screenBuffer, myLCDwidth/2, myLCDheight, 0, 0);
-	
-	MultiBuffer right_side;
-	// Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-	myLCD.LCDinitBufferStruct(&right_side, screenBuffer, myLCDwidth/2, myLCDheight, myLCDwidth/2, 0);
+	// define a buffer to cover whole screen
+	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
+	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	myLCD.LCDclearBuffer();  // Clear buffer
 
 	while (count < 10000)
 	{
 		static long framerate = 0;
-		display_Left(&left_side, framerate, count);
-
-		display_Right(&right_side);
+		displayData(framerate, count);
 
 		framerate++;
 		count++;
@@ -98,13 +92,12 @@ void myLoop() {
 
 }
 
-// Function to display left hand side buffer
-void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
+// Function to display data
+void displayData(long currentFramerate, int count)
 {
-	myLCD.ActiveBuffer = targetbuffer; // set target buffer object
 	myLCD.LCDclearBuffer();
 	myLCD.setCursor(0, 0);
-	myLCD.print("LHS Buffer");
+	myLCD.print("LHS Screen");
 
 	myLCD.setCursor(0, 10);
 	myLCD.print("768 bytes");
@@ -129,26 +122,19 @@ void display_Left(MultiBuffer* targetbuffer, long currentFramerate, int count)
 
 	myLCD.setCursor(0, 40);
 	myLCD.print(fps);
-	myLCD.print(" fps");
+	myLCD.print(" FPS SWSPI");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.5");
+	myLCD.print("V 1.7");
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
-	myLCD.LCDupdate();
-}
+	
+	myLCD.setCursor(97, 0);
+	myLCD.print("RHS Screen");
 
-// Function to display right hand side buffer
-void display_Right(MultiBuffer* targetbuffer)
-{
-	myLCD.ActiveBuffer = targetbuffer; // set target buffer object
-	myLCD.LCDclearBuffer();
-	myLCD.setCursor(0, 0);
-	myLCD.print("RHS buffer");
-
-	myLCD.fillRect(0, 10, 20, 20, colour);
-	myLCD.fillCircle(40, 20, 10, FOREGROUND);
-	myLCD.fillTriangle(60, 30, 70, 10, 80, 30, !colour);
-	myLCD.drawRoundRect(10, 40, 60, 20, 10, FOREGROUND);
-
+	myLCD.fillRect(97, 10, 20, 20, colour);
+	myLCD.fillCircle(137, 20, 10, FOREGROUND);
+	myLCD.fillTriangle(157, 30, 167, 10, 177, 30, !colour);
+	myLCD.drawRoundRect(107, 40, 60, 20, 10, FOREGROUND);
+	
 	myLCD.LCDupdate();
 }
 
