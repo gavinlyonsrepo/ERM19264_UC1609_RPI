@@ -13,7 +13,7 @@
 	* [SPI](#spi)
 	* [Fonts](#fonts)
 	* [Bitmaps](#bitmaps)
-	* [User adjustments](#user-adjustments)
+	* [User Adjustments](#user-adjustments)
   * [Notes and Issues](#notes-and-issues)
 
 ## Overview
@@ -42,7 +42,6 @@
 	4. bcm2835 Library 1.71 (Dependency)
     
 ## Output
-
 
 Output Screenshots, From left to right top to bottom.
 
@@ -132,15 +131,14 @@ defined by enum bcm2835SPIClockDivider. For full list see
 [link.](http://www.airspayce.com/mikem/bcm2835/group__constants.html#gaf2e0ca069b8caef24602a02e8a00884e)
 User can also adjust which SPI chip enable pin the use uing "begin" method parameter.
 
-
-### Fonts 
+### Fonts
 
 There are 6 standard scale-able ASCII fonts.
 A print class is available to print out most passed data types.
 The fonts 1-6 are byte high(at text size 1) scale-able fonts, columns of padding added by SW.
 The example file TEXT_GRAPHICS shows how to use these. 
 
-Four standard fonts available : 
+Six standard fonts available : 
 
 | Font num | Font name | Font size xbyy |  Note |
 | ------ | ------ | ------ | ------ |  
@@ -171,7 +169,7 @@ Inverting only works with the standard fonts because the characters are a unifor
 
 There is a few different ways of displaying bitmaps, 
 
-| Num | Method |  Data addressing | Note |
+| Num | Method | Data addressing | Note |
 | ------ | ------ |  ------ |  ------ |  
 | 1 | LCDBitmap() |  Vertical | Writes directly to screen , no buffer used. | 
 | 2 | LCDBuffer() |   Vertical  | For internal use mostly | 
@@ -181,7 +179,7 @@ There is a few different ways of displaying bitmaps,
 
 See the bitmap example file for more details on each method. Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) , Bitmaps should be defined as const  buffers non-const, for methods 3 buffer can be initialised with bitmap data.
 
-### User adjustments
+### User Adjustments
 
 If the LCD does not initialize correctly. 
 Try adjusting the RAM address control setting from 0x02 to 0x01. It can be set in LCDbegin() argument list.
@@ -192,7 +190,7 @@ Datasheet says 0x49 is default. (VbiasPOT). Lower contrast works better on the b
 
 It is also possible for user to change LCD bias ,  Temperature coefficient, frame rate and power control but this must be done by changing defines in header file. Choose lower frame rate for lower power, and choose higher frame rate to improve LCD contrast and minimize flicker. See Data sheet for range of values here. Defaults where found to be fine during all testing of this library.
 
-| Parameter | default Values |  Define | Register bits |
+| Parameter | default Values |  Define | Register Bits|
 | ------ | ------ |  ------ | ------ |
 | LCD bias |  9 | BIAS_RATIO_SET | BR 1:0 |
 | Temp coefficient | -0.00%/ C |  TEMP_COMP_SET | TC 1:0  |
@@ -200,4 +198,6 @@ It is also possible for user to change LCD bias ,  Temperature coefficient, fram
 | Power control | 1.4mA + Internal VLCD (7x charge pump) |  PC_SET | PC 2:0 |
 | V bias Bot(contrast) | 0x49 |  Set by user with LCDbegin | PM 7:0 |
 | Ram Address Control | 0x02 |  Set by user with LCDbegin  | AC 2:0 |
+
+## Notes and Issues
 
