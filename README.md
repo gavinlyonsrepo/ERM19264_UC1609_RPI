@@ -15,6 +15,7 @@
 	* [Bitmaps](#bitmaps)
 	* [User Adjustments](#user-adjustments)
   * [Notes and Issues](#notes-and-issues)
+	* [Compilation problems](#compilation-problems)
 
 ## Overview
 
@@ -32,13 +33,14 @@
 8. Dependency: bcm2835 Library
 
 * Author: Gavin Lyons
-* Copyright: GNU GPL v3
+
 * This is a port of my [Arduino library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
-    More details there as well as link to the API(There are some differences between this port and Arduino library)
-* Developed on 
+    More details there as well as link to the API(There are some differences between this port and Arduino library most notably use of glyph fonts)
+    
+* Development Toolchain :: 
 	1. Raspberry PI 3 model b, 
 	2. C++ complier g++ (Raspbian 8.3.0-6)
-	3. Raspbian 10 buster  OS
+	3. Raspbian 10 buster  OS, 32 bit.
 	4. bcm2835 Library 1.71 (Dependency)
     
 ## Output
@@ -201,3 +203,9 @@ It is also possible for user to change LCD bias ,  Temperature coefficient, fram
 
 ## Notes and Issues
 
+### Compilation problems
+
+Note the toolchain used in overview section, If you have trouble compiling on other 
+platforms or OS. For example 64-bit OS, user may need to remove or edit
+some of the CCFLAGS in root directory Makefile to allow for Compilation, if you see them throwing errors
+See [pull request on SSD1306 project](https://github.com/gavinlyonsrepo/SSD1306_OLED_RPI/pull/2) for details
