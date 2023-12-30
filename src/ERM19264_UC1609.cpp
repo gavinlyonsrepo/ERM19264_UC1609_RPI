@@ -45,7 +45,11 @@ ERM19264_UC1609 :: ERM19264_UC1609(int16_t lcdwidth, int16_t lcdheight , int8_t 
 // Param1: VBiasPOT default = 0x49 , range 0x00 to 0xFE
 // Param2: spi_divider default = 64 ,see bcm2835SPIClockDivider enum , bcm2835
 // Param3: SPICE_Pin default = 0 , which SPI_CE pin to use , 0 or 1
-void ERM19264_UC1609::LCDbegin(uint8_t AddressSet ,uint8_t VbiasPOT, uint32_t spi_divider, uint8_t SPICE_Pin)
+// Start SPI operations(if HWSPI). Forces RPi SPI0 pins P1-19 (MOSI), P1-21 (MISO),
+// P1-23 (CLK), P1-24 (CE0) or P1-26 (CE1)
+// to alternate function ALT0, which enables those pins for SPI interface.
+// Return: Return true for success false for failure
+bool ERM19264_UC1609::LCDbegin(uint8_t AddressSet ,uint8_t VbiasPOT, uint32_t spi_divider, uint8_t SPICE_Pin)
 {
 	bcm2835_gpio_fsel(_LCD_RST, BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(_LCD_CD, BCM2835_GPIO_FSEL_OUTP);
@@ -56,22 +60,28 @@ void ERM19264_UC1609::LCDbegin(uint8_t AddressSet ,uint8_t VbiasPOT, uint32_t sp
 	_SPICLK_DIVIDER  = spi_divider;
 	_SPICE_PIN = SPICE_Pin;
 	
-	if(GetCommMode() == 3)
+	switch (GetCommMode())
 	{
-		bcm2835_gpio_fsel( _LCD_CS, BCM2835_GPIO_FSEL_OUTP);
-		bcm2835_gpio_fsel(_LCD_SCLK, BCM2835_GPIO_FSEL_OUTP);
-		bcm2835_gpio_fsel(_LCD_DIN, BCM2835_GPIO_FSEL_OUTP);
+		case 2:
+			if (!bcm2835_spi_begin())
+				return false;
+		break;
+		case 3:
+			bcm2835_gpio_fsel( _LCD_CS, BCM2835_GPIO_FSEL_OUTP);
+			bcm2835_gpio_fsel(_LCD_SCLK, BCM2835_GPIO_FSEL_OUTP);
+			bcm2835_gpio_fsel(_LCD_DIN, BCM2835_GPIO_FSEL_OUTP);
+		break;
 	}
 
 	LCDinit();
+	return true;
 }
 
-// Desc: Start SPI operations. Forces RPi SPI0 pins P1-19 (MOSI), P1-21 (MISO),
-// P1-23 (CLK), P1-24 (CE0) or P1-26 (CE1)
-// to alternate function ALT0, which enables those pins for SPI interface.
-void ERM19264_UC1609::LCDSPIon(void)
+
+// Desc: Spi HW settings
+// sets SPI HW settings Speed , Bit order ,mode + CEO pin 
+void ERM19264_UC1609::LCDSPIHWSettings(void)
 {
-	bcm2835_spi_begin();
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
 	
@@ -98,7 +108,7 @@ void ERM19264_UC1609::LCDSPIon(void)
 // are returned to their default INPUT behaviour.
 void ERM19264_UC1609::LCDSPIoff(void)
 {
-	 bcm2835_spi_end();
+	bcm2835_spi_end();
 }
 
 // Call when powering down
@@ -108,11 +118,15 @@ void ERM19264_UC1609::LCDPowerDown(void)
 	LCDEnable(0);
 	UC1609_CD_SetLow ;
 	UC1609_RST_SetLow ;
-	if(GetCommMode()== 3)
+
+	switch (GetCommMode())
 	{
-		UC1609_SDA_SetLow;
-		UC1609_SCLK_SetLow ;
-		UC1609_CS_SetLow ;
+		case 2:LCDSPIoff(); break;
+		case 3:
+			UC1609_SDA_SetLow;
+			UC1609_SCLK_SetLow ;
+			UC1609_CS_SetLow ;
+		break;
 	}
 	_sleep= true;
 }
@@ -124,7 +138,7 @@ void ERM19264_UC1609::LCDinit()
  {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -150,7 +164,7 @@ void ERM19264_UC1609::LCDinit()
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -182,7 +196,7 @@ void ERM19264_UC1609::LCDEnable (uint8_t bits)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -191,7 +205,7 @@ void ERM19264_UC1609::LCDEnable (uint8_t bits)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -210,7 +224,7 @@ void ERM19264_UC1609::LCDscroll (uint8_t bits)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -218,7 +232,7 @@ void ERM19264_UC1609::LCDscroll (uint8_t bits)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -231,7 +245,7 @@ void ERM19264_UC1609::LCDrotate(uint8_t rotatevalue)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -247,7 +261,7 @@ void ERM19264_UC1609::LCDrotate(uint8_t rotatevalue)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -258,7 +272,7 @@ void ERM19264_UC1609::LCDinvert (uint8_t bits)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -266,7 +280,7 @@ void ERM19264_UC1609::LCDinvert (uint8_t bits)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -278,7 +292,7 @@ void ERM19264_UC1609::LCDallpixelsOn(uint8_t bits)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -286,7 +300,7 @@ void ERM19264_UC1609::LCDallpixelsOn(uint8_t bits)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -298,7 +312,7 @@ void ERM19264_UC1609::LCDFillPage(uint8_t page_num, uint8_t dataPattern)
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 	send_command(UC1609_SET_COLADD_LSB, 0);
@@ -306,7 +320,7 @@ void ERM19264_UC1609::LCDFillPage(uint8_t page_num, uint8_t dataPattern)
 	send_command(UC1609_SET_PAGEADD, page_num);
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 
@@ -314,7 +328,7 @@ void ERM19264_UC1609::LCDFillPage(uint8_t page_num, uint8_t dataPattern)
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -324,7 +338,7 @@ void ERM19264_UC1609::LCDFillPage(uint8_t page_num, uint8_t dataPattern)
 	}
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -349,7 +363,7 @@ void ERM19264_UC1609::LCDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, cons
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -375,7 +389,7 @@ void ERM19264_UC1609::LCDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, cons
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2:  break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -394,9 +408,9 @@ void ERM19264_UC1609::CustomshiftOut(uint8_t value)
 	 	!!(value & (1 << (7 - i))) ? UC1609_SDA_SetHigh : UC1609_SDA_SetLow ;
 
 		UC1609_SCLK_SetHigh;
-		bcm2835_delayMicroseconds(UC1609_HIGHFREQ_DELAY);
+		bcm2835_delayMicroseconds(_LCD_HighFreqDelay);
 		UC1609_SCLK_SetLow;
-		bcm2835_delayMicroseconds(UC1609_HIGHFREQ_DELAY);
+		bcm2835_delayMicroseconds(_LCD_HighFreqDelay);
 	}
 }
 
@@ -404,11 +418,13 @@ void ERM19264_UC1609::CustomshiftOut(uint8_t value)
 //Param1: the data byte
 void ERM19264_UC1609::send_data(uint8_t byte)
 {
-	if(GetCommMode() == 2 )
-			bcm2835_spi_transfer(byte);
-	else if(GetCommMode() == 3)
-			CustomshiftOut(byte);
+	switch (GetCommMode())
+	{
+		case 2: bcm2835_spi_transfer(byte); break;
+		case 3: CustomshiftOut(byte); break;
+	}
 }
+
 
 //Desc: updates the buffer i.e. writes it to the screen
 void ERM19264_UC1609::LCDupdate()
@@ -436,7 +452,7 @@ void ERM19264_UC1609::LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint
 {
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIon(); break;
+		case 2: LCDSPIHWSettings(); break;
 		case 3: UC1609_CS_SetLow; break;
 	}
 
@@ -463,7 +479,7 @@ void ERM19264_UC1609::LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint
 
 	switch (GetCommMode())
 	{
-		case 2: LCDSPIoff(); break;
+		case 2: break;
 		case 3: UC1609_CS_SetHigh; break;
 	}
 }
@@ -485,5 +501,13 @@ void ERM19264_UC1609::drawPixel(int16_t x, int16_t y, uint8_t colour)
 	}
 }
 
+// return library version number getter
+uint16_t ERM19264_UC1609::LCDLibVerNumGet(void){return _LibVeNum;}
+
+// Freq delay used in SW SPI getter, uS delay used in CustomshiftOut method
+uint16_t ERM19264_UC1609::LCD_HighFreqDelayGet(void){return _LCD_HighFreqDelay;}
+
+// Freq delay used in SW SPI setter, uS delay used in CustomshiftOut method
+void ERM19264_UC1609::LCD_HighFreqDelaySet(uint16_t CommDelay){_LCD_HighFreqDelay = CommDelay;}
 
 //****************  EOF ******************************8

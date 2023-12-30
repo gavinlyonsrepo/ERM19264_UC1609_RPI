@@ -71,7 +71,6 @@
 #define UC1609_RESET_DELAY2   0 // mS delay datasheet says 5mS, does not work
 #define UC1609_INIT_DELAY 100   //  mS delay ,after init
 #define UC1609_INIT_DELAY2 3 // mS delay,  before reset called
-#define UC1609_HIGHFREQ_DELAY 0 // uS used in software SPI , option.
 
 // GPIO
 #define UC1609_CS_SetHigh bcm2835_gpio_write(_LCD_CS, HIGH)
@@ -103,7 +102,7 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	void LCDupdate(void);
 	void LCDclearBuffer(void);
 	void LCDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
-	void LCDbegin(uint8_t AddressSet = UC1609_ADDRESS_SET, uint8_t VbiasPot = UC1609_DEFAULT_GN_PM, uint32_t _SPICLK_DIVIDER = 0, uint8_t _SPICE_Pin = 0  );
+	bool LCDbegin(uint8_t AddressSet = UC1609_ADDRESS_SET, uint8_t VbiasPot = UC1609_DEFAULT_GN_PM, uint32_t _SPICLK_DIVIDER = 0, uint8_t _SPICE_Pin = 0  );
 	void LCDinit(void);
 	void LCDEnable(uint8_t on);
 	void LCDFillScreen(uint8_t pixel);
@@ -115,10 +114,14 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	void LCDReset(void);
 	void LCDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t* data);
 	void LCDPowerDown(void);
-	void LCDSPIon(void);
+	void LCDSPIHWSettings(void);
 	void LCDSPIoff(void);
 	bool LCDIssleeping(void);
-
+	
+	uint16_t LCDLibVerNumGet(void);
+	uint16_t LCD_HighFreqDelayGet(void);
+	void LCD_HighFreqDelaySet(uint16_t);
+	
   private:
 
 	void send_data(uint8_t data);
@@ -145,6 +148,9 @@ class ERM19264_UC1609 : public ERM19264_graphics {
 	
 	uint32_t _SPICLK_DIVIDER = 0; //Spi clock divider , bcm2835SPIClockDivider enum bcm2835
 	uint8_t _SPICE_PIN = 0; // which SPI_CE pin to use , 0 or 1
+	
+	const uint16_t _LibVeNum = 171 ;
+	uint16_t  _LCD_HighFreqDelay = 0; // uS used in software SPI , option.
 };
 
 #endif

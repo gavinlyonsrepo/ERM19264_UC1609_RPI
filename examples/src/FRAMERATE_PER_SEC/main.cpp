@@ -32,7 +32,7 @@ bool colour = 1;
 uint64_t  previousCounter =0;
 
 // =============== Function prototype ================
-void setup(void);
+bool setup(void);
 void myTest(void);
 void EndTest(void);
 void displayData(long , int );
@@ -41,9 +41,8 @@ static uint64_t counter( void );
 // ======================= Main ===================
 int main(int argc, char **argv)
 {
-	if(!bcm2835_init()){return -1;}
 
-	setup();
+	if(!setup()) {return -1;}
 	myTest();
 	EndTest();
 
@@ -54,30 +53,49 @@ int main(int argc, char **argv)
 
 // ============== Function Space ============
 
-void EndTest(void)
+bool setup() {
+	printf("LCD Test Begin\r\n");
+	// Check if Bcm28235 lib installed and print version.
+	if(!bcm2835_init())
+	{
+		printf("Error 1201: init bcm2835 library , Is it installed ?\r\n");
+		return false;
+	}else
+	{
+		printf("bcm2835 library Version Number :: %u\r\n",bcm2835_version());
+		bcm2835_delay(100);
+	}
+
+	if(!myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN))  // initialize the LCD
+	{
+		printf("Error 1202: bcm2835_spi_begin :Cannot start spi, Running as root?\n");
+		return false;
+	}
+	printf("ERM19264 Library version number :: %u \r\n", myLCD.LCDLibVerNumGet());
+	myLCD.LCDFillScreen(0x33); // display splash screen bars, optional for effect
+	bcm2835_delay(1500);
+	return true;
+}
+
+void EndTest()
 {
 	myLCD.LCDPowerDown();
-	bcm2835_close(); //Close lib, deallocating allocated mem & close /dev/mem
+	bcm2835_close(); // Close library, deallocating allocated memory & closing /dev/mem
 	printf("LCD End\r\n");
 }
 
-void setup()
-{
-	bcm2835_delay(50);
-	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
-	myLCD.LCDFillScreen(0x01);
-	bcm2835_delay(2000);
-}
-
 void myTest() {
-
 
 	myLCD.setTextColor(FOREGROUND);
 	myLCD.setTextSize(1);
 	// define a buffer to cover whole screen
 	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
 	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1203 :: Problem assigning buffer pointer\r\n");
+		exit(-1);
+	}
 	myLCD.LCDclearBuffer();  // Clear buffer
 
 	while (count < 10000)
@@ -96,11 +114,6 @@ void myTest() {
 void displayData(long currentFramerate, int count)
 {
 	myLCD.LCDclearBuffer();
-	myLCD.setCursor(0, 0);
-	myLCD.print("LHS Screen");
-
-	myLCD.setCursor(0, 10);
-	myLCD.print("768 bytes");
 
 	myLCD.setCursor(0, 20);
 	myLCD.print("G Lyons");
@@ -124,11 +137,9 @@ void displayData(long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" fps");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.7");
+	myLCD.print(myLCD.LCDLibVerNumGet());
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
 	
-	myLCD.setCursor(97, 0);
-	myLCD.print("RHS Screen");
 
 	myLCD.fillRect(97, 10, 20, 20, colour);
 	myLCD.fillCircle(137, 20, 10, FOREGROUND);

@@ -29,20 +29,18 @@ const uint8_t SPI_CE_PIN = 0; // which HW SPI chip enable pin to use,  0 or 1
 const uint8_t LCDcontrast = 0x49; //Constrast 00 to FF , 0x80 is default.
 const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional, default 2
 
-ERM19264_UC1609 mylcd(myLCDwidth ,myLCDheight , RST, CD ) ;  
+ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight , RST, CD ) ;  
 
 
 // =============== Function prototype ================
-void setup(void);
+bool setup(void);
 void myTest(void);
 void EndTest(void);
 
 // ======================= Main ===================
 int main(int argc, char **argv) 
 {
-	if(!bcm2835_init()){return -1;}
-
-	setup();
+	if(!setup()) {return -1;}
 	myTest();
 	EndTest();
 
@@ -50,20 +48,35 @@ int main(int argc, char **argv)
 }
 // ======================= End of main  ===================
 
+// ===================== Function Space =====================
+bool setup() {
+	printf("LCD Test Begin\r\n");
+	// Check if Bcm28235 lib installed and print version.
+	if(!bcm2835_init())
+	{
+		printf("Error 1201: init bcm2835 library , Is it installed ?\r\n");
+		return false;
+	}else
+	{
+		printf("bcm2835 library Version Number :: %u\r\n",bcm2835_version());
+		bcm2835_delay(100);
+	}
 
-void setup()
-{
-	bcm2835_delay(50);
-	printf("LCD Begin\r\n");
-	mylcd.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN);  // initialize the LCD
-	mylcd.LCDFillScreen(0x11); // Clears screen
+	if(!myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN))  // initialize the LCD
+	{
+		printf("Error 1202: bcm2835_spi_begin :Cannot start spi, Running as root?\n");
+		return false;
+	}
+	printf("ERM19264 Library version number :: %u \r\n", myLCD.LCDLibVerNumGet());
+	myLCD.LCDFillScreen(0x33); // display splash screen bars, optional for effect
 	bcm2835_delay(1500);
+	return true;
 }
 
 void EndTest()
 {
-	mylcd.LCDPowerDown();
-	bcm2835_close(); // Close lib, deallocate allocated mem & close /dev/mem
+	myLCD.LCDPowerDown();
+	bcm2835_close(); // Close library, deallocating allocated memory & closing /dev/mem
 	printf("LCD End\r\n");
 }
 
@@ -71,84 +84,89 @@ void myTest()
 {
 	// define a buffer to cover whole screen
 	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
-	mylcd.LCDbufferScreen = (uint8_t*) &screenBuffer;
-	mylcd.LCDclearBuffer();   // Clear buffer
+	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1203 :: Problem assigning buffer pointer\r\n");
+		exit(-1);
+	}
+	myLCD.LCDclearBuffer();   // Clear buffer
 
 	// Set text parameters
-	mylcd.setTextColor(FOREGROUND);
-	mylcd.setTextSize(2);
+	myLCD.setTextColor(FOREGROUND);
+	myLCD.setTextSize(2);
 
 	// Test 1 LCD all pixels on
-	mylcd.setCursor(20, 30);
-	mylcd.print("All Pixels on");
-	mylcd.LCDupdate();
+	myLCD.setCursor(20, 30);
+	myLCD.print("All Pixels on");
+	myLCD.LCDupdate();
 	bcm2835_delay(4000);
-	mylcd.LCDclearBuffer();
-	mylcd.LCDupdate();
-	mylcd.LCDallpixelsOn(1);
+	myLCD.LCDclearBuffer();
+	myLCD.LCDupdate();
+	myLCD.LCDallpixelsOn(1);
 	bcm2835_delay(2000);
-	mylcd.LCDallpixelsOn(0);
+	myLCD.LCDallpixelsOn(0);
 	bcm2835_delay(2000);
 
 	// Test 2 inverse
-	mylcd.setCursor(20, 30);
-	mylcd.print("inverse test  ");
-	mylcd.LCDupdate();
-	mylcd.LCDinvert(0); // Normal
+	myLCD.setCursor(20, 30);
+	myLCD.print("inverse test  ");
+	myLCD.LCDupdate();
+	myLCD.LCDinvert(0); // Normal
 	bcm2835_delay(2000);
-	mylcd.LCDinvert(1); // Inverted
+	myLCD.LCDinvert(1); // Inverted
 	bcm2835_delay(4000);
-	mylcd.LCDinvert(0);
+	myLCD.LCDinvert(0);
 
 	// Test3 LCD rotate
-	mylcd.LCDclearBuffer();
-	mylcd.setCursor(20, 30);
-	mylcd.print("rotate test");
-	mylcd.LCDupdate();
+	myLCD.LCDclearBuffer();
+	myLCD.setCursor(20, 30);
+	myLCD.print("rotate test");
+	myLCD.LCDupdate();
 	bcm2835_delay(2000);
-	mylcd.LCDrotate(UC1609_ROTATION_FLIP_ONE);
-	mylcd.LCDupdate();
+	myLCD.LCDrotate(UC1609_ROTATION_FLIP_ONE);
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
-	mylcd.LCDrotate(UC1609_ROTATION_FLIP_TWO);
-	mylcd.LCDupdate();
+	myLCD.LCDrotate(UC1609_ROTATION_FLIP_TWO);
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
-	mylcd.LCDrotate(UC1609_ROTATION_FLIP_THREE);
-	mylcd.LCDupdate();
+	myLCD.LCDrotate(UC1609_ROTATION_FLIP_THREE);
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
-	mylcd.LCDrotate(UC1609_ROTATION_NORMAL);
-	mylcd.LCDupdate();
+	myLCD.LCDrotate(UC1609_ROTATION_NORMAL);
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 
 	// Test4 LCD scroll
-	mylcd.LCDclearBuffer();
-	//mylcd.LCDupdate();
-	mylcd.setCursor(0, 40);
-	mylcd.print("scroll test");
+	myLCD.LCDclearBuffer();
+	//myLCD.LCDupdate();
+	myLCD.setCursor(0, 40);
+	myLCD.print("scroll test");
 	for (uint8_t i = 0 ; i < 62 ; i ++) 
 	{
-		mylcd.LCDscroll(i);
-		mylcd.LCDupdate();
+		myLCD.LCDscroll(i);
+		myLCD.LCDupdate();
 		bcm2835_delay(100);
 	}
-	mylcd.LCDscroll(0);
+	myLCD.LCDscroll(0);
 
 	//Test5 LCD enable and disable
-	mylcd.LCDclearBuffer();
-	mylcd.setCursor(0, 30);
-	mylcd.print("LCD Disable test");
-	mylcd.LCDupdate();
+	myLCD.LCDclearBuffer();
+	myLCD.setCursor(0, 30);
+	myLCD.print("LCD Disable test");
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
-	mylcd.LCDEnable(0);
+	myLCD.LCDEnable(0);
 	bcm2835_delay(5000);
-	mylcd.LCDEnable(1);
-	mylcd.LCDclearBuffer();
+	myLCD.LCDEnable(1);
+	myLCD.LCDclearBuffer();
 
 	// Test 6 Powerdown
-	mylcd.setCursor(5, 10);
-	mylcd.print("End Tests");
-	mylcd.setCursor(5, 35);
-	mylcd.print("Power down in 5");
-	mylcd.LCDupdate();
+	myLCD.setCursor(5, 10);
+	myLCD.print("End Tests");
+	myLCD.setCursor(5, 35);
+	myLCD.print("Power down in 5");
+	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 }
 

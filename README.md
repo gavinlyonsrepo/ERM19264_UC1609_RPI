@@ -15,7 +15,7 @@
 	* [Bitmaps](#bitmaps)
 	* [User Adjustments](#user-adjustments)
   * [Notes and Issues](#notes-and-issues)
-	* [Compilation problems](#compilation-problems)
+
 
 ## Overview
 
@@ -36,13 +36,14 @@
 
 * This is a port of my [Arduino library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
     More details there as well as link to the API(There are some differences between this port and Arduino library most notably use of glyph fonts)
-    
-* Development Toolchain :: 
-	1. Raspberry PI 3 model b, 
-	2. C++ complier g++ (Raspbian 8.3.0-6)
-	3. Raspbian 10 buster  OS, 32 bit.
-	4. bcm2835 Library 1.71 (Dependency)
-    
+
+* Development Tool chain. 
+	1. Raspberry PI 3 model b
+	2. C++, g++ (Debian 12.2.0) 
+	3. Raspbian , Debian 12 bookworm OS, , 64 bit.
+	4. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
+	5. bcm2835 Library 1.73 dependency. Provides low level I2C bus, delays and GPIO control.
+
 ## Output
 
 Output Screenshots, From left to right top to bottom.
@@ -59,25 +60,23 @@ Output Screenshots, From left to right top to bottom.
 ## Installation
 
 
-1. Make sure SPI bus is enabled on your raspberry PI
-
-2. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.68.)
+1. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.73)
 	* The bcm2835 library is a dependency and provides SPI bus, delays and GPIO control.
 	* Install the C libraries of bcm2835, [Installation instructions here](http://www.airspayce.com/mikem/bcm2835/)
 
-3. Download the ERM19264_UC1609_RPI library 
+2. Download the ERM19264_UC1609_RPI library 
 	* Open a Terminal in a folder where you want to download,build & test library
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.7.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/archive/1.7.1.tar.gz | tar xz
 ```
 
-4. Run "make" to run the makefile to install library, it will be 
+3. Run "make" to run the makefile to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd ERM19264_UC1609_RPI-1.7
+cd ERM19264_UC1609_RPI-1.7.1
 make
 sudo make install 
 ```
@@ -97,7 +96,9 @@ make run
 ```
 
 2. There are seven examples files to try out. 
-To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY. Comment out the rest and repeat step 1.
+To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder. 
+In the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY.
+ Comment out the rest and repeat step 1.
 
 
 ## Hardware
@@ -112,18 +113,23 @@ There are 3 different colours in range, Parts used purchased from [ebay](https:/
 2. ERM19264FS-5 V3 LCD Display  UC1609C controller , black on white
 3. ERM19264DNS-5 V3 LCD Display  UC1609C controller white on black
 
-The UC1609 controller chip is a 3.3V device but the ERM LCD module has a "662k" 3.3V regulator at back.
-So the ERM LCD module will run at 5V as well if this is present.
-It was always run it at 3.3V during testing.
-
+Wiring Diagram from supplier showing connection to RPI.
 
 ![ ERM19264 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI/blob/main/extras/image/wiring.png)
+
+This wiring Diagram from the manufacturer showing hardware setup connected to an ~8051 MCU, showing both 3.3 volt and 5 volt systems.
+Note status of J1 PCB jumper.
+
+![ ERM192642 ](https://github.com/gavinlyonsrepo/ERM19264_UC1609/blob/main/extras/image/connect.jpg)
 
 ## Software
 
 ### SPI
 
-Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows for more flexible GPIO selection. When running Software SPI it may be necessary on very high frequency MCU's to change the UC1609_HIGHFREQ_DELAY define, It is a microsecond delay by default it is at 0.
+Hardware and software SPI. Two different class constructors. User can pick the relevant constructor, 
+see examples files. Hardware SPI is recommended, far faster and more reliable but Software SPI allows 
+for more flexible GPIO selection. When running Software SPI it may be necessary on very high 
+frequency MCU's to change the LCD_HighFreqDelaySet method, It is a microsecond delay by default it is at 0.
 
 The SPI settings are in LCDSPIon function.
 Speed is currently at BCM2835_SPI_CLOCK_DIVIDER_64. 
@@ -166,7 +172,6 @@ The glyph-fonts use 3 special functions: setFontGlyph drawCharGlyph drawTextGlyp
 They cannot currently use the print class, also cannot be inverted.
 Inverting only works with the standard fonts because the characters are a uniform size. It's not a sensible thing to do with proportionally-spaced fonts with glyphs of varying sizes and that may overlap.  
 
-
 ### Bitmaps
 
 There is a few different ways of displaying bitmaps, 
@@ -203,9 +208,3 @@ It is also possible for user to change LCD bias ,  Temperature coefficient, fram
 
 ## Notes and Issues
 
-### Compilation problems
-
-Note the toolchain used in overview section, If you have trouble compiling on other 
-platforms or OS. For example 64-bit OS, user may need to remove or edit
-some of the CCFLAGS in root directory Makefile to allow for Compilation, if you see them throwing errors
-See [pull request on SSD1306 project](https://github.com/gavinlyonsrepo/SSD1306_OLED_RPI/pull/2) for details

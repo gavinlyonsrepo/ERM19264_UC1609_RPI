@@ -5,7 +5,6 @@
 // URL: https://github.com/gavinlyonsrepo/ERM19264_UC1609_RPI
 // *****************************
 
-
 #include <bcm2835.h>
 #include <time.h>
 #include <stdio.h>
@@ -25,24 +24,57 @@ const uint8_t RAMaddressCtrl = 0x02; // RAM address control: Range 0-7, optional
 ERM19264_UC1609 myLCD(myLCDwidth ,myLCDheight, RST, CD) ;
 
 // =============== Function prototype ================
-void setup(void);
-void myLoop(void);
-void EndTest(void);
+
 void Test1(void);
 void Test2(void);
 void Test3(void);
 void Test4(void);
 void Test5(void);
+bool setup(void);
+void myLoop(void);
+void EndTest(void);
 
 // ======================= Main ===================
 int main(int argc, char **argv) 
 {
-	if(!bcm2835_init()){return -1;}
-
-	setup();
+	if(!setup()) {return -1;}
 	myLoop();
 	EndTest();
+
 	return 0;
+}
+// ======================= End of main  ===================
+
+// ===================== Function Space =====================
+bool setup() {
+	printf("LCD Test Begin\r\n");
+	// Check if Bcm28235 lib installed and print version.
+	if(!bcm2835_init())
+	{
+		printf("Error 1201: init bcm2835 library , Is it installed ?\r\n");
+		return false;
+	}else
+	{
+		printf("bcm2835 library Version Number :: %u\r\n",bcm2835_version());
+		bcm2835_delay(100);
+	}
+
+	if(!myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast, SPICLK_FREQ , SPI_CE_PIN))  // initialize the LCD
+	{
+		printf("Error 1202: bcm2835_spi_begin :Cannot start spi, Running as root?\n");
+		return false;
+	}
+	printf("ERM19264 Library version number :: %u \r\n", myLCD.LCDLibVerNumGet());
+	myLCD.LCDFillScreen(0x33); // display splash screen bars, optional for effect
+	bcm2835_delay(1500);
+	return true;
+}
+
+void EndTest()
+{
+	myLCD.LCDPowerDown();
+	bcm2835_close(); // Close library, deallocating allocated memory & closing /dev/mem
+	printf("LCD End\r\n");
 }
 
 //192x64px bitmap,'UC1609' SW used to make https://javl.github.io/image2cpp/ vertical addressing
@@ -166,15 +198,6 @@ const uint8_t  BatIcon[16] =
 	0xfe, 0x02, 0x92, 0x0a, 0x54, 0x2a, 0x38, 0xaa, 0x12, 0xaa, 0x12, 0xaa, 0x12, 0xaa, 0x12, 0xaa
 	};
 
-void setup()
-{
-	printf("LCD Begin\r\n");
-	bcm2835_delay(50);
-	myLCD.LCDbegin(RAMaddressCtrl , LCDcontrast, SPICLK_FREQ , SPI_CE_PIN); // initialize the LCD
-	myLCD.LCDFillScreen(0xFF); // Clears screen with 1's (i.e fills it)
-	bcm2835_delay(2000);
-}
-
 void myLoop()
 {
 	Test1(); // Method (1) LCD bitmap method
@@ -184,17 +207,11 @@ void myLoop()
 	Test5(); // Method (5) Drawbitmap to buffer method, horizontal addressing
 }
 
-void EndTest()
-{
-	myLCD.LCDPowerDown();
-	bcm2835_close(); // Close library & /dev/mem, deallocating any allocated memory 
-	printf("LCD End\r\n");
-}
-
 
 void Test1(void)
 {
 	// Method (1) LCD bitmap method , writes data directly to screen
+	printf("Test1: LCDBitmap method , Full screen\n");
 	myLCD.LCDBitmap(0, 0 , myLCDwidth, myLCDheight, fullScreenBuffer);
 	bcm2835_delay(5000);
 	myLCD.LCDFillScreen(0x00); 
@@ -205,6 +222,7 @@ void Test2(void)
 	// Method (2) LCD buffer method, writes data directly to screen
 	// This function is called internally by LCDupdate to print buffer
 	// to screen but can be called externally as well as shown.
+	printf("Test2: LCDBuffer method , Two icons\n");
 	myLCD.LCDBuffer(0, 0, 16, 8, (uint8_t*)SignalIcon);
 	myLCD.LCDBuffer(176, 0, 16, 8, (uint8_t*)BatIcon);
 	bcm2835_delay(5000);
@@ -213,7 +231,13 @@ void Test2(void)
 
 void Test3(void)
 {
+	printf("Test3: LCDupdate method ,  full screen\n");
 	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1203 :: Problem assigning buffer pointer\r\n");
+		exit(-1);
+	}
 	myLCD.LCDupdate();
 	bcm2835_delay(5000);
 	myLCD.LCDFillScreen(0x00); 
@@ -221,9 +245,15 @@ void Test3(void)
 
 void Test4(void)
 {
+	printf("Test4:setDrawBitmapAddr method ,  2 icons Data Vertical addressed \n");
 	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1204 :: Problem assigning buffer pointer\r\n");
+		exit(-1);
+	}
 	myLCD.LCDclearBuffer();   // Clear buffer
-	myLCD.setDrawBitmapAddr(true); // for Bitmap Data Vertical  addressed
+	myLCD.setDrawBitmapAddr(true); // for Bitmap Data Vertical addressed
 	myLCD.drawBitmap(0,   5, SignalIcon, 16, 8, FOREGROUND, BACKGROUND);
 	myLCD.drawBitmap(150, 5, BatIcon, 16, 8 , FOREGROUND, BACKGROUND);
 
@@ -233,10 +263,15 @@ void Test4(void)
 
 void Test5(void)
 {
+	printf("Test5:setDrawBitmapAddr method ,  3 icons Data Horizontal addressed \n");
 	myLCD.LCDbufferScreen = (uint8_t*) &fullScreenBuffer;
-	myLCD.LCDclearBuffer();   // Clear active buffer
-
-	myLCD.setDrawBitmapAddr(false); // for Bitmap Data Horziontal addressed
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1205 :: Problem assigning buffer pointer\r\n");
+		exit(-1);
+	}
+		myLCD.LCDclearBuffer();   // Clear active buffer
+	myLCD.setDrawBitmapAddr(false); // for Bitmap Data Horizontal addressed
 	myLCD.drawBitmap(10, 25, SignalIconHa, 16, 8, FOREGROUND, BACKGROUND);
 	myLCD.drawBitmap(100, 20, SignalIconHa, 16, 8, BACKGROUND, FOREGROUND);
 	myLCD.drawBitmap(60, 20, SignalIconHa, 16, 8, BACKGROUND, FOREGROUND);

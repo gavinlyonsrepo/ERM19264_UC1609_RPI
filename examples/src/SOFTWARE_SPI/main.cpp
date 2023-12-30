@@ -35,8 +35,8 @@ bool colour = 1;
 uint64_t  previousCounter =0;
 
 // =============== Function prototype ================
-void setup(void);
-void myLoop(void);
+bool setup(void);
+bool myTest(void);
 void EndTest(void);
 void displayData(long , int );
 static uint64_t counter( void );
@@ -44,33 +44,46 @@ static uint64_t counter( void );
 // ======================= Main ===================
 int main(int argc, char **argv)
 {
-	if(!bcm2835_init()){return -1;}
-
-	setup();
-	myLoop();
+	if(!setup()) {return -1;}
+	if(!myTest()) {return -1;}
 	EndTest();
 
 	return 0;
 }
 // ======================= End of main  ===================
 
-void setup()
-{
-	bcm2835_delay(50);
-	printf("LCD Begin\r\n");
-	myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast); // initialize the LCD
-	myLCD.LCDFillScreen(0x77); // Splash screen bars
-	bcm2835_delay(2000);
+bool setup() {
+	printf("LCD Test Begin\r\n");
+	// Check if Bcm28235 lib installed and print version.
+	if(!bcm2835_init())
+	{
+		printf("Error 1201: init bcm2835 library , Is it installed ?\r\n");
+		return false;
+	}else
+	{
+		printf("bcm2835 library Version Number :: %u\r\n",bcm2835_version());
+		bcm2835_delay(100);
+	}
+
+	if(!myLCD.LCDbegin(RAMaddressCtrl, LCDcontrast))  // initialize the LCD
+	{
+		printf("Error 1202: bcm2835_spi_begin :Cannot start spi, Running as root?\n");
+		return false;
+	}
+	printf("ERM19264 Library version number :: %u \r\n", myLCD.LCDLibVerNumGet());
+	myLCD.LCDFillScreen(0x33); // display splash screen bars, optional for effect
+	bcm2835_delay(1500);
+	return true;
 }
 
 void EndTest()
 {
 	myLCD.LCDPowerDown();
-	bcm2835_close(); // Close the library
+	bcm2835_close(); // Close library, deallocating allocated memory & closing /dev/mem
 	printf("LCD End\r\n");
 }
 
-void myLoop() {
+bool myTest() {
 
 	myLCD.setTextColor(FOREGROUND);
 	myLCD.setTextSize(1);
@@ -78,8 +91,13 @@ void myLoop() {
 	// define a buffer to cover whole screen
 	uint8_t screenBuffer[myLCDwidth * (myLCDheight/8)]; 
 	myLCD.LCDbufferScreen = (uint8_t*) &screenBuffer;
+	if(myLCD.LCDbufferScreen== nullptr) // check if pointer is still = null
+	{
+		printf("Error 1203 :: Problem assigning buffer pointer\r\n");
+		return false;
+	}
 	myLCD.LCDclearBuffer();  // Clear buffer
-
+	//myLCD.LCD_HighFreqDelaySet(1); // optional set the GPIO delay for software SPI
 	while (count < 10000)
 	{
 		static long framerate = 0;
@@ -89,19 +107,16 @@ void myLoop() {
 		count++;
 		bcm2835_delay(1);
 	}
-
+	return true;
 }
 
 // Function to display data
 void displayData(long currentFramerate, int count)
 {
 	myLCD.LCDclearBuffer();
-	myLCD.setCursor(0, 0);
-	myLCD.print("LHS Screen");
 
 	myLCD.setCursor(0, 10);
-	myLCD.print("768 bytes");
-
+	myLCD.print(myLCD.LCD_HighFreqDelayGet()); //Software SPI GPIO delay
 	myLCD.setCursor(0, 20);
 	myLCD.print("G Lyons");
 
@@ -124,11 +139,9 @@ void displayData(long currentFramerate, int count)
 	myLCD.print(fps);
 	myLCD.print(" FPS SWSPI");
 	myLCD.setCursor(0, 50);
-	myLCD.print("V 1.7");
+	myLCD.print(myLCD.LCDLibVerNumGet());
 	myLCD.drawFastVLine(92, 0, 63, FOREGROUND);
 	
-	myLCD.setCursor(97, 0);
-	myLCD.print("RHS Screen");
 
 	myLCD.fillRect(97, 10, 20, 20, colour);
 	myLCD.fillCircle(137, 20, 10, FOREGROUND);

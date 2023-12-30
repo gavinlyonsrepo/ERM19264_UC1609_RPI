@@ -26,7 +26,7 @@ SRCS = $(wildcard $(SRC)/*.cpp)
 OBJS = $(patsubst $(SRC)%.cpp,  $(OBJ)/%.o, $(SRCS))
 
 CXX=g++
-CCFLAGS= -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -Iinclude/
+CCFLAGS= -march=native -mtune=native -mcpu=native  -Iinclude/
 LDFLAGS= -lbcm2835
 
 # make

@@ -26,3 +26,9 @@
 	* Added support for string objects in the print class. 
 	* Changed multi-buffer mode to a single buffer mode.
 	* Allowed user to adjust Ram address control setting in Begin methods arguments.
+
+* Version 1.7.1 Dec 2023
+	* Changed so Makefile will compile without errors for 64-bit OS
+	* Getter and setters added for software SPI GPIO delay.
+	* changed LCDbegin method so it returns failure in event of user no running as root.
+
