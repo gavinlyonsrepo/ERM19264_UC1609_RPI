@@ -31,7 +31,7 @@
 6. Bitmaps supported.
 7. Hardware & software SPI options
 8. Dependency: bcm2835 Library
-
+9. See also : [Combined Display library 'Display_Lib_RPI'](https://github.com/gavinlyonsrepo/Display_Lib_RPI)
 * Author: Gavin Lyons
 
 * This is a port of my [Arduino library](https://github.com/gavinlyonsrepo/ERM19264_UC1609)
